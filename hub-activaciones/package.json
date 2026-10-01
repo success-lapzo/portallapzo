@@ -1,0 +1,16 @@
+{
+  "name": "hub-activaciones-lapzo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hub de Activaciones Lapzo — tablero de solicitudes, diagnostico, capacidad y roadmap del equipo de Activaciones. Exportado del entorno de Claude para integrarse como modulo nativo de Portal Lapzo.",
+  "type": "module",
+  "scripts": {
+    "start": "node tools/dev-server.mjs",
+    "dev": "node tools/dev-server.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}

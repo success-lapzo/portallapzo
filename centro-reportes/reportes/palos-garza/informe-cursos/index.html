@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Informe de Cursos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F0F2F5;
+    --surface: #FFFFFF;
+    --surface-2: #F7F8FA;
+    --border: #DDE1E8;
+    --accent: #1E3A5F;
+    --accent-light: #2D5A9E;
+    --accent-muted: #E8EDF5;
+    --success: #1A7F5A;
+    --success-bg: #E8F5F0;
+    --warning: #B45309;
+    --warning-bg: #FEF3C7;
+    --error: #B91C1C;
+    --error-bg: #FEE2E2;
+    --text: #1A202C;
+    --text-2: #4A5568;
+    --text-3: #718096;
+    --font-ui: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-data: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  }
+
+  body {
+    font-family: var(--font-ui);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    margin-bottom: 8px;
+  }
+
+  .page-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .page-header p {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--text-3);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    max-width: 900px;
+    margin: 0 auto 24px auto;
+  }
+
+  .card h2 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 36px 24px;
+    text-align: center;
+    background: var(--surface-2);
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--accent-light);
+    background: var(--accent-muted);
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .upload-zone .upload-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .upload-zone .upload-hint {
+    font-size: 13px;
+    color: var(--text-3);
+    max-width: 420px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  .file-selected {
+    margin-top: 14px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--success-bg);
+    border: 1px solid #A7F3D0;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--success);
+    font-weight: 500;
+  }
+
+  .file-selected.visible { display: flex; }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  button {
+    font-family: var(--font-ui);
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 7px;
+    padding: 11px 22px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:not(:disabled):hover { background: var(--accent-light); }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
+  }
+
+  .btn-secondary:not(:disabled):hover {
+    background: var(--accent-muted);
+  }
+
+  .status-box {
+    max-width: 900px;
+    margin: 0 auto 16px auto;
+    padding: 13px 18px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+  }
+
+  .status-box.visible { display: flex; }
+  .status-box.info { background: var(--accent-muted); border: 1px solid #C3D4EE; color: var(--accent); }
+  .status-box.success { background: var(--success-bg); border: 1px solid #A7F3D0; color: var(--success); }
+  .status-box.warning { background: var(--warning-bg); border: 1px solid #FDE68A; color: var(--warning); }
+  .status-box.error { background: var(--error-bg); border: 1px solid #FECACA; color: var(--error); }
+
+  .status-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  .preview-card {
+    max-width: 1200px;
+    margin: 0 auto 24px auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: none;
+  }
+
+  .preview-card.visible { display: block; }
+
+  .preview-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .preview-header h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .preview-stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stat-chip {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-3);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+  }
+
+  .stat-chip strong {
+    color: var(--accent);
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+    padding: 0 0 4px 0;
+  }
+
+  table {
+    border-collapse: collapse;
+    font-size: 12px;
+    width: 100%;
+    min-width: max-content;
+  }
+
+  table thead tr:first-child th {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.15);
+    white-space: nowrap;
+  }
+
+  table thead tr:first-child th.empty { background: #2C4A6E; }
+
+  table thead tr:nth-child(2) th {
+    background: #2D5A9E;
+    color: #fff;
+    font-weight: 600;
+    font-size: 11px;
+    padding: 9px 10px;
+    text-align: left;
+    border: 1px solid rgba(255,255,255,0.15);
+    white-space: nowrap;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  table thead tr:nth-child(2) th.summary-col {
+    background: #1A4A7A;
+    text-align: center;
+  }
+
+  table tbody tr:nth-child(even) td { background: #F7F9FC; }
+  table tbody tr:hover td { background: var(--accent-muted); }
+
+  table tbody td {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  table tbody td.col-name {
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 160px;
+    white-space: normal;
+  }
+
+  table tbody td.col-dept {
+    color: var(--text-2);
+    min-width: 120px;
+    white-space: normal;
+    font-size: 11px;
+  }
+
+  table tbody td.col-summary {
+    text-align: center;
+    font-weight: 600;
+    font-family: var(--font-data);
+  }
+
+  table tbody td.col-pct {
+    text-align: center;
+    font-family: var(--font-data);
+    font-weight: 700;
+  }
+
+  td.val-na { color: var(--text-3); font-style: italic; text-align: center; }
+  td.val-nc { color: var(--error); font-weight: 600; text-align: center; }
+  td.val-numeric { color: var(--success); font-weight: 700; font-family: var(--font-data); text-align: center; }
+  td.val-cumple { color: #1A7F5A; font-weight: 600; text-align: center; }
+  td.val-constancia { color: #6D28D9; font-weight: 600; text-align: center; }
+  td.val-baja { color: var(--text-3); font-style: italic; text-align: center; font-size: 11px; }
+
+  /* Totales verticales en preview */
+  table tbody tr.totals-row td {
+    background: #1E3A5F !important;
+    color: #FFFFFF !important;
+    font-weight: 700;
+    font-size: 11px;
+    text-align: center;
+  }
+  table tbody tr.totals-row td.totals-label {
+    text-align: left;
+    background: #14375A !important;
+    color: #FFFFFF !important;
+  }
+  table tbody tr.totals-pct td {
+    background: #0D2B4E !important;
+    color: #B3D4F5 !important;
+    font-weight: 700;
+    font-size: 11px;
+    text-align: center;
+  }
+  table tbody tr.totals-pct td.totals-label {
+    text-align: left;
+    background: #0A2440 !important;
+    color: #B3D4F5 !important;
+  }
+
+  .download-bar {
+    max-width: 900px;
+    margin: 0 auto 40px auto;
+    display: none;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .download-bar.visible { display: flex; }
+
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    .page-header h1 { font-size: 22px; }
+    .card { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="eyebrow">Lapzo · Recursos Humanos</div>
+  <h1>Generador de Informe de Cursos</h1>
+  <p>Carga el reporte detallado de cursos y genera el informe consolidado en Excel.</p>
+</div>
+
+<div class="card">
+  <h2>Archivo de entrada</h2>
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="csvInput" accept=".csv">
+    <span class="upload-icon">📂</span>
+    <div class="upload-title">Haz clic para seleccionar el archivo CSV</div>
+    <div class="upload-hint">
+      Carga el reporte detallado de cursos descargado desde la plataforma.<br>
+      El archivo puede tener cualquier nombre, siempre que conserve la estructura esperada.
+    </div>
+  </div>
+
+  <div class="file-selected" id="fileSelected">
+    <span>✅</span>
+    <span id="fileSelectedName">Archivo cargado correctamente.</span>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" id="btnGenerate" disabled>
+      ⚙️ Generar informe
+    </button>
+  </div>
+</div>
+
+<div class="status-box" id="statusBox">
+  <span class="status-icon" id="statusIcon"></span>
+  <span id="statusText"></span>
+</div>
+
+<div class="preview-card" id="previewCard">
+  <div class="preview-header">
+    <h2>Vista previa del informe</h2>
+    <div class="preview-stats" id="previewStats"></div>
+  </div>
+  <div class="table-scroll" id="tableScroll"></div>
+</div>
+
+<div class="download-bar" id="downloadBar">
+  <button class="btn-secondary" id="btnDownload">
+    📥 Descargar Excel
+  </button>
+  <span style="font-size:13px;color:var(--text-3);">Informe_Resultados_Cursos.xlsx</span>
+</div>
+
+<script>
+// ─── Utilidades de normalización ────────────────────────────────────────────
+
+function normalize(str) {
+  if (!str && str !== 0) return '';
+  return String(str)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/[.,;:\-–—_()[\]{}\"'`]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeCourseName(str) {
+  if (!str) return '';
+  let n = normalize(str);
+  n = n.replace(/\b\d{2}[-\/]\d{2}[-\/]\d{4}\b/g, '').trim();
+  n = n.replace(/\b\d{4}[-\/]\d{2}[-\/]\d{2}\b/g, '').trim();
+  n = n.replace(/\b\d{2}[-\/]\d{2}[-\/]\d{2}\b/g, '').trim();
+  n = n.replace(/\s+/g, ' ').trim();
+  return n;
+}
+
+function normalizeStatus(str) {
+  return normalize(str);
+}
+
+const APPROVED_STATUSES = ['APROBADO', 'COMPLETADO', 'FINALIZADO', 'TERMINADO', 'CUMPLIDO', 'COMPLETED', 'PASSED', 'APPROVED'];
+const INACTIVE_STATUSES = ['BAJA', 'DESACTIVADO', 'INACTIVO', 'INACTIVE', 'DISABLED', 'DADO DE BAJA', 'BAJA DE PERSONAL'];
+
+function isApproved(estatusCurso, fechaFin, progreso) {
+  const s = normalizeStatus(estatusCurso);
+  if (APPROVED_STATUSES.some(a => s.includes(a))) return true;
+  const p = parseFloat(String(progreso).replace('%','').replace(',','.'));
+  if (!isNaN(p) && p >= 100 && fechaFin && String(fechaFin).trim() !== '') return true;
+  return false;
+}
+
+function isInactive(estatusPlataforma) {
+  const s = normalizeStatus(estatusPlataforma);
+  return INACTIVE_STATUSES.some(a => s.includes(a));
+}
+
+function parseScore(val) {
+  if (!val && val !== 0) return null;
+  const s = String(val).replace('%','').replace(',','.').trim();
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
+function parseProgress(val) {
+  if (!val && val !== 0) return 0;
+  const s = String(val).replace('%','').replace(',','.').trim();
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+function parseDate(val) {
+  if (!val || String(val).trim() === '') return null;
+  const s = String(val).trim();
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function extractDateFromName(courseName) {
+  const patterns = [
+    /(\d{2})[-\/](\d{2})[-\/](\d{4})/,
+    /(\d{4})[-\/](\d{2})[-\/](\d{2})/,
+    /(\d{2})[-\/](\d{4})/,
+  ];
+  for (const p of patterns) {
+    const m = courseName.match(p);
+    if (m) return courseName.indexOf(m[0]);
+  }
+  return -1;
+}
+
+// ─── Columnas obligatorias ───────────────────────────────────────────────────
+
+const REQUIRED_COLS = [
+  'Nombre del curso',
+  'Nombre de usuario',
+  'OU',
+  'Estatus en plataforma',
+  'Estatus del curso',
+  'Progreso del usuario',
+  'Puntuacion del usuario',
+  'Fecha de finalizacion'
+];
+
+function detectColumn(headers, target) {
+  const tNorm = normalize(target);
+  return headers.find(h => normalize(h) === tNorm) || null;
+}
+
+function buildColumnMap(headers) {
+  const map = {};
+  const all = [
+    'Nombre del curso', 'Nombre de usuario', 'OU',
+    'Estatus en plataforma', 'Estatus del curso',
+    'Progreso del usuario', 'Puntuacion del usuario',
+    'Fecha de finalizacion', 'Fecha de último intento',
+    'ID de empleado', 'Razon social'
+  ];
+  for (const col of all) {
+    const found = detectColumn(headers, col);
+    if (found) map[normalize(col)] = found;
+  }
+  return map;
+}
+
+function get(row, colMap, key) {
+  const col = colMap[normalize(key)];
+  if (!col) return '';
+  return row[col] !== undefined ? String(row[col]) : '';
+}
+
+// ─── Estado global ───────────────────────────────────────────────────────────
+
+let parsedData = null;
+let rawRows = [];
+let colMap = {};
+
+// ─── UI helpers ─────────────────────────────────────────────────────────────
+
+function setStatus(type, icon, msg) {
+  const box = document.getElementById('statusBox');
+  box.className = 'status-box visible ' + type;
+  document.getElementById('statusIcon').textContent = icon;
+  document.getElementById('statusText').innerHTML = msg;
+}
+
+function clearStatus() {
+  const box = document.getElementById('statusBox');
+  box.className = 'status-box';
+}
+
+// ─── Procesamiento principal ─────────────────────────────────────────────────
+
+function processCSV(rows, headers) {
+  colMap = buildColumnMap(headers);
+
+  const missing = REQUIRED_COLS.filter(c => !detectColumn(headers, c));
+  if (missing.length > 0) {
+    setStatus('error', '❌',
+      `El archivo CSV cargado no tiene la estructura esperada. Faltan las siguientes columnas:<br>
+      <strong>${missing.join(', ')}</strong>`
+    );
+    return null;
+  }
+
+  const courseMap = new Map();
+  const courseOrder = [];
+  for (const row of rows) {
+    const rawName = get(row, colMap, 'Nombre del curso').trim();
+    if (!rawName) continue;
+    const key = normalizeCourseName(rawName);
+    if (!key) continue;
+    if (!courseMap.has(key)) {
+      courseMap.set(key, rawName);
+      courseOrder.push(key);
+    }
+  }
+
+  if (courseOrder.length === 0) {
+    setStatus('error', '❌', 'No se pudieron identificar cursos en el CSV. Verifica la columna <strong>Nombre del curso</strong>.');
+    return null;
+  }
+
+  courseOrder.sort((a, b) => {
+    const da = extractDateFromName(a);
+    const db = extractDateFromName(b);
+    if (da !== -1 && db !== -1) return a.localeCompare(b);
+    if (da !== -1) return -1;
+    if (db !== -1) return 1;
+    return a.localeCompare(b);
+  });
+
+  const courseDisplayNames = courseOrder.map(k => courseMap.get(k));
+
+  const collaboratorMap = new Map();
+
+  for (const row of rows) {
+    const nombre = get(row, colMap, 'Nombre de usuario').trim();
+    const ou = get(row, colMap, 'OU').trim();
+    const estatusPlat = get(row, colMap, 'Estatus en plataforma');
+    const estatusCurso = get(row, colMap, 'Estatus del curso');
+    const progreso = get(row, colMap, 'Progreso del usuario');
+    const puntuacion = get(row, colMap, 'Puntuacion del usuario');
+    const fechaFin = get(row, colMap, 'Fecha de finalizacion');
+    const fechaIntento = get(row, colMap, 'Fecha de último intento');
+    const rawCourse = get(row, colMap, 'Nombre del curso').trim();
+
+    if (!nombre || !rawCourse) continue;
+
+    const collKey = normalize(nombre);
+
+    if (!collaboratorMap.has(collKey)) {
+      collaboratorMap.set(collKey, {
+        nombre: nombre,
+        ou: ou || '',
+        estatusPlat: estatusPlat,
+        courses: new Map()
+      });
+    }
+
+    const collab = collaboratorMap.get(collKey);
+    if (!collab.ou && ou) collab.ou = ou;
+    if (!collab.estatusPlat && estatusPlat) collab.estatusPlat = estatusPlat;
+
+    const courseKey = normalizeCourseName(rawCourse);
+    if (!courseKey) continue;
+
+    const existing = collab.courses.get(courseKey);
+    const newRecord = { estatusCurso, progreso, puntuacion, fechaFin, fechaIntento, rawCourse };
+
+    if (!existing) {
+      collab.courses.set(courseKey, newRecord);
+    } else {
+      collab.courses.set(courseKey, bestRecord(existing, newRecord));
+    }
+  }
+
+  if (collaboratorMap.size === 0) {
+    setStatus('error', '❌', 'No se encontraron colaboradores válidos en el CSV.');
+    return null;
+  }
+
+  const collaborators = Array.from(collaboratorMap.values()).sort((a, b) =>
+    normalize(a.nombre).localeCompare(normalize(b.nombre))
+  );
+
+  const reportRows = collaborators.map(collab => {
+    const row = {
+      nombre: collab.nombre,
+      ou: collab.ou,
+      cells: [],
+      totalAplicables: 0,
+      totalAsistidos: 0,
+      totalAprobados: 0
+    };
+
+    const inactive = isInactive(collab.estatusPlat);
+
+    for (const courseKey of courseOrder) {
+      const record = collab.courses.get(courseKey);
+      let cellVal, cellType;
+
+      if (inactive) {
+        cellVal = 'Baja de personal';
+        cellType = 'baja';
+      } else if (!record) {
+        cellVal = 'NA';
+        cellType = 'na';
+      } else {
+        const approved = isApproved(record.estatusCurso, record.fechaFin, record.progreso);
+        if (approved) {
+          const score = parseScore(record.puntuacion);
+          if (score !== null && score >= 0) {
+            cellVal = score;
+            cellType = 'numeric';
+          } else {
+            cellVal = 'Constancia';
+            cellType = 'constancia';
+          }
+        } else {
+          cellVal = 'NC';
+          cellType = 'nc';
+        }
+      }
+
+      row.cells.push({ val: cellVal, type: cellType });
+
+      if (!inactive) {
+        if (cellType !== 'na') {
+          row.totalAplicables++;
+          if (cellType !== 'nc') {
+            row.totalAsistidos++;
+            if (cellType === 'numeric' && parseScore(cellVal) >= 85) row.totalAprobados++;
+            else if (cellType === 'cumple') row.totalAprobados++;
+            else if (cellType === 'constancia') row.totalAprobados++;
+          }
+        }
+      }
+    }
+
+    row.pctParticipacion = row.totalAplicables > 0
+      ? (row.totalAsistidos / row.totalAplicables * 100)
+      : 0;
+    row.pctAprobados = row.totalAsistidos > 0
+      ? (row.totalAprobados / row.totalAsistidos * 100)
+      : 0;
+
+    return row;
+  });
+
+  // ── Calcular totales verticales por columna de curso ──────────────────────
+  const numCourses = courseOrder.length;
+  const verticalTotals = {
+    programado: new Array(numCourses).fill(0),
+    asistencia: new Array(numCourses).fill(0),
+    aprobados:  new Array(numCourses).fill(0),
+    reprobados: new Array(numCourses).fill(0),
+  };
+
+  for (const row of reportRows) {
+    row.cells.forEach((cell, ci) => {
+      if (cell.type === 'baja') return; // baja no cuenta en ningún total
+      if (cell.type === 'na') return;   // NA no cuenta
+      // Cuenta en programado
+      verticalTotals.programado[ci]++;
+      // Cuenta en asistencia si no es NC
+      if (cell.type !== 'nc') {
+        verticalTotals.asistencia[ci]++;
+        // Cuenta en aprobados
+        if (cell.type === 'constancia') {
+          verticalTotals.aprobados[ci]++;
+        } else if (cell.type === 'cumple') {
+          verticalTotals.aprobados[ci]++;
+        } else if (cell.type === 'numeric' && parseScore(cell.val) >= 85) {
+          verticalTotals.aprobados[ci]++;
+        } else if (cell.type === 'numeric' && parseScore(cell.val) < 85) {
+          verticalTotals.reprobados[ci]++;
+        }
+      } else {
+        // NC = reprobado
+        verticalTotals.reprobados[ci]++;
+      }
+    });
+  }
+
+  // Calcular porcentajes verticales
+  const verticalPcts = {
+    asistencia: verticalTotals.programado.map((p, i) =>
+      p > 0 ? (verticalTotals.asistencia[i] / p * 100) : 0),
+    aprobados: verticalTotals.asistencia.map((a, i) =>
+      a > 0 ? (verticalTotals.aprobados[i] / a * 100) : 0),
+  };
+
+  return {
+    courses: courseDisplayNames,
+    courseOrder,
+    rows: reportRows,
+    verticalTotals,
+    verticalPcts
+  };
+}
+
+function bestRecord(a, b) {
+  const aApproved = isApproved(a.estatusCurso, a.fechaFin, a.progreso);
+  const bApproved = isApproved(b.estatusCurso, b.fechaFin, b.progreso);
+
+  if (aApproved && !bApproved) return a;
+  if (!aApproved && bApproved) return b;
+
+  const aScore = parseScore(a.puntuacion) || 0;
+  const bScore = parseScore(b.puntuacion) || 0;
+  if (aScore !== bScore) return aScore > bScore ? a : b;
+
+  const aProgress = parseProgress(a.progreso);
+  const bProgress = parseProgress(b.progreso);
+  if (aProgress !== bProgress) return aProgress > bProgress ? a : b;
+
+  const aDate = parseDate(a.fechaFin) || parseDate(a.fechaIntento) || new Date(0);
+  const bDate = parseDate(b.fechaFin) || parseDate(b.fechaIntento) || new Date(0);
+  return aDate >= bDate ? a : b;
+}
+
+// ─── Vista previa ────────────────────────────────────────────────────────────
+
+function renderPreview(data) {
+  const { courses, rows, verticalTotals, verticalPcts } = data;
+
+  const statsEl = document.getElementById('previewStats');
+  statsEl.innerHTML = `
+    <div class="stat-chip"><strong>${rows.length}</strong> colaboradores</div>
+    <div class="stat-chip"><strong>${courses.length}</strong> cursos detectados</div>
+  `;
+
+  let html = '<table>';
+
+  html += '<thead><tr>';
+  html += '<th class="empty" colspan="2"></th>';
+  courses.forEach((_, i) => { html += `<th>${i + 1}</th>`; });
+  ['', '', '', '', ''].forEach(() => { html += '<th></th>'; });
+  html += '</tr>';
+
+  html += '<tr>';
+  html += '<th>PGSAVER</th><th>DEPARTAMENTO</th>';
+  courses.forEach(c => {
+    const short = c.length > 28 ? c.substring(0, 26) + '…' : c;
+    html += `<th title="${escHtml(c)}">${escHtml(short)}</th>`;
+  });
+  ['TOTAL CURSOS APLICABLES', 'TOTAL CURSOS ASISTIDOS', '% PARTICIPACIÓN', 'TOTAL APROBADOS', '% APROBADOS'].forEach(s => {
+    html += `<th class="summary-col">${s}</th>`;
+  });
+  html += '</tr></thead>';
+
+  html += '<tbody>';
+  rows.forEach(row => {
+    html += '<tr>';
+    html += `<td class="col-name">${escHtml(row.nombre)}</td>`;
+    html += `<td class="col-dept">${escHtml(row.ou)}</td>`;
+
+    row.cells.forEach(cell => {
+      const cls = 'val-' + cell.type;
+      html += `<td class="${cls}">${escHtml(String(cell.val))}</td>`;
+    });
+
+    html += `<td class="col-summary">${row.totalAplicables}</td>`;
+    html += `<td class="col-summary">${row.totalAsistidos}</td>`;
+    html += `<td class="col-pct">${fmt(row.pctParticipacion)}%</td>`;
+    html += `<td class="col-summary">${row.totalAprobados}</td>`;
+    html += `<td class="col-pct">${fmt(row.pctAprobados)}%</td>`;
+    html += '</tr>';
+  });
+
+  // ── Filas de totales verticales en preview ────────────────────────────────
+  const totalLabels = [
+    { label: 'Total personal programado', key: 'programado',  pct: false },
+    { label: 'Total asistencia',          key: 'asistencia',  pct: false },
+    { label: '% Asistencia',              key: 'asistenciaPct', pct: true },
+    { label: 'Total aprobados',           key: 'aprobados',   pct: false },
+    { label: 'Total reprobados',          key: 'reprobados',  pct: false },
+    { label: '% Aprobados',              key: 'aprobadosPct', pct: true },
+  ];
+
+  totalLabels.forEach(({ label, key, pct }) => {
+    const trClass = pct ? 'totals-pct' : 'totals-row';
+    html += `<tr class="${trClass}">`;
+    html += `<td class="totals-label" colspan="2">${escHtml(label)}</td>`;
+    for (let ci = 0; ci < courses.length; ci++) {
+      let val = '';
+      if (key === 'programado')     val = verticalTotals.programado[ci];
+      else if (key === 'asistencia') val = verticalTotals.asistencia[ci];
+      else if (key === 'aprobados')  val = verticalTotals.aprobados[ci];
+      else if (key === 'reprobados') val = verticalTotals.reprobados[ci];
+      else if (key === 'asistenciaPct') val = fmt(verticalPcts.asistencia[ci]) + '%';
+      else if (key === 'aprobadosPct')  val = fmt(verticalPcts.aprobados[ci]) + '%';
+      html += `<td>${val}</td>`;
+    }
+    // Celdas vacías para las columnas de resumen
+    html += `<td></td><td></td><td></td><td></td><td></td>`;
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+
+  document.getElementById('tableScroll').innerHTML = html;
+  document.getElementById('previewCard').classList.add('visible');
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function fmt(n) {
+  return isNaN(n) ? '0' : Math.round(n * 10) / 10;
+}
+
+// ─── Exportar Excel (ExcelJS — estilos completos) ────────────────────────────
+
+async function exportExcel(data) {
+  const { courses, rows, verticalTotals, verticalPcts } = data;
+
+  // ── Paleta de colores ──────────────────────────────────────────────────────
+  const C = {
+    headerDark:    '1E3A5F',
+    headerMid:     '2D5A9E',
+    headerSummary: '14426E',
+    headerFont:    'FFFFFF',
+
+    approvedBg:   'D6F0E3',
+    approvedFont: '145A32',
+
+    ncBg:   'FDECEA',
+    ncFont: 'B71C1C',
+
+    naFont: '9E9E9E',
+    naBg:   'F5F5F5',
+
+    bajaBg:   'EEEEEE',
+    bajaFont: '757575',
+
+    summaryBg:   'EBF2FA',
+    summaryFont: '1E3A5F',
+
+    pctBg:   'D0E4F7',
+    pctFont: '0D2B4E',
+
+    rowEven: 'FAFCFF',
+    rowOdd:  'FFFFFF',
+
+    border: 'B0BEC5',
+
+    // Totales verticales
+    totalsLabelBg:  '14375A',
+    totalsLabelFont:'FFFFFF',
+    totalsValBg:    '1E3A5F',
+    totalsValFont:  'FFFFFF',
+    totalsPctLabelBg:  '0A2440',
+    totalsPctLabelFont:'B3D4F5',
+    totalsPctValBg:    '0D2B4E',
+    totalsPctValFont:  'B3D4F5',
+  };
+
+  const borderStyle = {
+    top:    { style: 'thin', color: { argb: 'FF' + C.border } },
+    left:   { style: 'thin', color: { argb: 'FF' + C.border } },
+    bottom: { style: 'thin', color: { argb: 'FF' + C.border } },
+    right:  { style: 'thin', color: { argb: 'FF' + C.border } },
+  };
+
+  const totalsBorderStyle = {
+    top:    { style: 'medium', color: { argb: 'FF' + C.border } },
+    left:   { style: 'thin',  color: { argb: 'FF' + C.border } },
+    bottom: { style: 'thin',  color: { argb: 'FF' + C.border } },
+    right:  { style: 'thin',  color: { argb: 'FF' + C.border } },
+  };
+
+  function fill(hex) {
+    return { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + hex } };
+  }
+
+  function font(hex, bold = false, size = 10) {
+    return { name: 'Calibri', size, bold, color: { argb: 'FF' + hex } };
+  }
+
+  const totalCols = 2 + courses.length + 5;
+
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Lapzo · Generador de Informe';
+  wb.created = new Date();
+
+  const ws = wb.addWorksheet('RESULTADOS', {
+    views: [{ state: 'frozen', xSplit: 2, ySplit: 2 }]
+  });
+
+  // ── Anchos de columna ──────────────────────────────────────────────────────
+  ws.getColumn(1).width = 32;
+  ws.getColumn(2).width = 26;
+  courses.forEach((c, i) => {
+    ws.getColumn(3 + i).width = Math.max(14, Math.min(c.length + 3, 38));
+  });
+  const sc = 3 + courses.length;
+  ws.getColumn(sc).width     = 24;
+  ws.getColumn(sc + 1).width = 22;
+  ws.getColumn(sc + 2).width = 22;
+  ws.getColumn(sc + 3).width = 22;
+  ws.getColumn(sc + 4).width = 20;
+
+  // ── Fila 1: numeración de cursos ───────────────────────────────────────────
+  const r1Data = ['', ''];
+  courses.forEach((_, i) => r1Data.push(i + 1));
+  for (let k = 0; k < 5; k++) r1Data.push('');
+
+  const r1 = ws.addRow(r1Data);
+  r1.height = 20;
+
+  r1.eachCell({ includeEmpty: true }, (cell) => {
+    cell.fill   = fill(C.headerDark);
+    cell.font   = font(C.headerFont, true, 10);
+    cell.border = borderStyle;
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+  });
+
+  // ── Fila 2: encabezados ────────────────────────────────────────────────────
+  const r2Data = ['PGSAVER', 'DEPARTAMENTO'];
+  courses.forEach(c => r2Data.push(c));
+  r2Data.push(
+    'TOTAL DE CURSOS APLICABLES',
+    'TOTAL DE CURSOS ASISTIDOS',
+    '% de PARTICIPACIÓN EN CURSOS',
+    'TOTAL DE CURSOS APROBADOS',
+    '% DE CURSOS APROBADOS'
+  );
+
+  const r2 = ws.addRow(r2Data);
+  r2.height = 36;
+
+  r2.eachCell({ includeEmpty: true }, (cell, colNum) => {
+    const isSummary = colNum > 2 + courses.length;
+    cell.fill   = fill(isSummary ? C.headerSummary : C.headerMid);
+    cell.font   = font(C.headerFont, true, 10);
+    cell.border = borderStyle;
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+  });
+  r2.getCell(1).fill = fill(C.headerDark);
+  r2.getCell(2).fill = fill(C.headerDark);
+
+  ws.autoFilter = {
+    from: { row: 2, column: 1 },
+    to:   { row: 2, column: totalCols }
+  };
+
+  // ── Filas de datos ─────────────────────────────────────────────────────────
+  rows.forEach((row, rowIdx) => {
+    const rowBg = rowIdx % 2 === 0 ? C.rowOdd : C.rowEven;
+
+    const rowData = [row.nombre, row.ou];
+    row.cells.forEach(cell => rowData.push(cell.val));
+    rowData.push(
+      row.totalAplicables,
+      row.totalAsistidos,
+      row.pctParticipacion / 100,
+      row.totalAprobados,
+      row.pctAprobados / 100
+    );
+
+    const exRow = ws.addRow(rowData);
+    exRow.height = 18;
+
+    const cellA = exRow.getCell(1);
+    cellA.fill      = fill(rowBg);
+    cellA.font      = font('1E3A5F', true, 10);
+    cellA.border    = borderStyle;
+    cellA.alignment = { vertical: 'middle' };
+
+    const cellB = exRow.getCell(2);
+    cellB.fill      = fill(rowBg);
+    cellB.font      = font('4A5568', false, 10);
+    cellB.border    = borderStyle;
+    cellB.alignment = { vertical: 'middle' };
+
+    row.cells.forEach((cell, ci) => {
+      const exCell = exRow.getCell(3 + ci);
+      exCell.border    = borderStyle;
+      exCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+      switch (cell.type) {
+        case 'numeric':
+          exCell.value = cell.val;
+          exCell.fill  = fill(C.approvedBg);
+          exCell.font  = font(C.approvedFont, true, 10);
+          break;
+        case 'cumple':
+          exCell.fill = fill(C.approvedBg);
+          exCell.font = font(C.approvedFont, true, 10);
+          break;
+        case 'constancia':
+          exCell.fill = fill('EDE7F6');
+          exCell.font = font('4A148C', true, 10);
+          break;
+        case 'nc':
+          exCell.fill = fill(C.ncBg);
+          exCell.font = font(C.ncFont, true, 10);
+          break;
+        case 'na':
+          exCell.fill = fill(C.naBg);
+          exCell.font = font(C.naFont, false, 10);
+          break;
+        case 'baja':
+          exCell.fill = fill(C.bajaBg);
+          exCell.font = font(C.bajaFont, false, 9);
+          break;
+        default:
+          exCell.fill = fill(rowBg);
+          exCell.font = font('1A202C', false, 10);
+      }
+    });
+
+    const summaryOffset = 3 + courses.length;
+
+    const cAp = exRow.getCell(summaryOffset);
+    cAp.fill = fill(C.summaryBg); cAp.font = font(C.summaryFont, true, 10);
+    cAp.border = borderStyle; cAp.alignment = { horizontal: 'center', vertical: 'middle' };
+
+    const cAs = exRow.getCell(summaryOffset + 1);
+    cAs.fill = fill(C.summaryBg); cAs.font = font(C.summaryFont, true, 10);
+    cAs.border = borderStyle; cAs.alignment = { horizontal: 'center', vertical: 'middle' };
+
+    const cPp = exRow.getCell(summaryOffset + 2);
+    cPp.fill      = fill(C.pctBg);
+    cPp.font      = font(C.pctFont, true, 10);
+    cPp.numFmt    = '0.0%';
+    cPp.border    = borderStyle;
+    cPp.alignment = { horizontal: 'center', vertical: 'middle' };
+
+    const cTa = exRow.getCell(summaryOffset + 3);
+    cTa.fill = fill(C.summaryBg); cTa.font = font(C.summaryFont, true, 10);
+    cTa.border = borderStyle; cTa.alignment = { horizontal: 'center', vertical: 'middle' };
+
+    const cPa = exRow.getCell(summaryOffset + 4);
+    cPa.fill      = fill(C.pctBg);
+    cPa.font      = font(C.pctFont, true, 10);
+    cPa.numFmt    = '0.0%';
+    cPa.border    = borderStyle;
+    cPa.alignment = { horizontal: 'center', vertical: 'middle' };
+  });
+
+  // ── Filas de totales verticales ────────────────────────────────────────────
+
+  const totalsConfig = [
+    {
+      label: 'Total personal programado',
+      values: verticalTotals.programado,
+      isPct: false,
+      isFirstTotalsRow: true,
+    },
+    {
+      label: 'Total asistencia',
+      values: verticalTotals.asistencia,
+      isPct: false,
+    },
+    {
+      label: '% Asistencia',
+      values: verticalPcts.asistencia,
+      isPct: true,
+    },
+    {
+      label: 'Total aprobados',
+      values: verticalTotals.aprobados,
+      isPct: false,
+    },
+    {
+      label: 'Total reprobados',
+      values: verticalTotals.reprobados,
+      isPct: false,
+    },
+    {
+      label: '% Aprobados',
+      values: verticalPcts.aprobados,
+      isPct: true,
+    },
+  ];
+
+  totalsConfig.forEach((cfg, tIdx) => {
+    const rowArr = ['', cfg.label];
+    cfg.values.forEach(v => {
+      if (cfg.isPct) {
+        rowArr.push(v / 100);
+      } else {
+        rowArr.push(v);
+      }
+    });
+    // Celdas vacías para columnas de resumen
+    for (let k = 0; k < 5; k++) rowArr.push('');
+
+    const exRow = ws.addRow(rowArr);
+    exRow.height = 18;
+
+    const lBg   = cfg.isPct ? C.totalsPctLabelBg   : C.totalsLabelBg;
+    const lFont = cfg.isPct ? C.totalsPctLabelFont  : C.totalsLabelFont;
+    const vBg   = cfg.isPct ? C.totalsPctValBg      : C.totalsValBg;
+    const vFont = cfg.isPct ? C.totalsPctValFont     : C.totalsValFont;
+
+    // Usar borde superior más grueso en la primera fila de totales
+    const useBorder = cfg.isFirstTotalsRow ? totalsBorderStyle : borderStyle;
+
+    // Celda A (vacía, pero estilizada)
+    const cellA = exRow.getCell(1);
+    cellA.fill      = fill(lBg);
+    cellA.font      = font(lFont, true, 10);
+    cellA.border    = useBorder;
+    cellA.alignment = { vertical: 'middle' };
+
+    // Celda B — label
+    const cellB = exRow.getCell(2);
+    cellB.fill      = fill(lBg);
+    cellB.font      = font(lFont, true, 10);
+    cellB.border    = useBorder;
+    cellB.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    // Celdas de valores por curso
+    for (let ci = 0; ci < courses.length; ci++) {
+      const exCell = exRow.getCell(3 + ci);
+      exCell.fill      = fill(vBg);
+      exCell.font      = font(vFont, true, 10);
+      exCell.border    = cfg.isFirstTotalsRow ? totalsBorderStyle : borderStyle;
+      exCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      if (cfg.isPct) {
+        exCell.numFmt = '0.0%';
+      }
+    }
+
+    // Celdas vacías en zona de resumen
+    const summaryOffset = 3 + courses.length;
+    for (let k = 0; k < 5; k++) {
+      const exCell = exRow.getCell(summaryOffset + k);
+      exCell.fill   = fill(lBg);
+      exCell.border = cfg.isFirstTotalsRow ? totalsBorderStyle : borderStyle;
+    }
+  });
+
+  // ── Descargar ──────────────────────────────────────────────────────────────
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob   = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href  = url;
+  link.download = 'Informe_Resultados_Cursos.xlsx';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+// ─── Event handlers ──────────────────────────────────────────────────────────
+
+const csvInput = document.getElementById('csvInput');
+const btnGenerate = document.getElementById('btnGenerate');
+const btnDownload = document.getElementById('btnDownload');
+
+csvInput.addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+
+  const fileSelected = document.getElementById('fileSelected');
+  document.getElementById('fileSelectedName').textContent = `Archivo cargado: ${file.name}`;
+  fileSelected.classList.add('visible');
+  btnGenerate.disabled = false;
+  clearStatus();
+  document.getElementById('previewCard').classList.remove('visible');
+  document.getElementById('downloadBar').classList.remove('visible');
+  parsedData = null;
+});
+
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    csvInput.files = e.dataTransfer.files;
+    csvInput.dispatchEvent(new Event('change'));
+  }
+});
+
+btnGenerate.addEventListener('click', function () {
+  const file = csvInput.files[0];
+  if (!file) {
+    setStatus('warning', '⚠️', 'Selecciona un archivo CSV antes de continuar.');
+    return;
+  }
+
+  btnGenerate.disabled = true;
+  btnGenerate.innerHTML = '<span class="spinner"></span> Procesando…';
+  clearStatus();
+  document.getElementById('previewCard').classList.remove('visible');
+  document.getElementById('downloadBar').classList.remove('visible');
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const text = e.target.result;
+      if (!text || text.trim() === '') {
+        setStatus('error', '❌', 'El archivo CSV está vacío.');
+        resetBtn();
+        return;
+      }
+
+      Papa.parse(text, {
+        header: true,
+        skipEmptyLines: true,
+        encoding: 'UTF-8',
+        complete: function (result) {
+          try {
+            const rows = result.data;
+            const headers = result.meta.fields || [];
+
+            if (rows.length === 0) {
+              setStatus('error', '❌', 'No se encontró información en el archivo CSV.');
+              resetBtn();
+              return;
+            }
+
+            rawRows = rows;
+            const data = processCSV(rows, headers);
+            if (!data) { resetBtn(); return; }
+
+            if (data.rows.length === 0) {
+              setStatus('error', '❌', 'No se encontraron colaboradores válidos con registros de cursos.');
+              resetBtn();
+              return;
+            }
+
+            parsedData = data;
+            renderPreview(data);
+
+            setStatus('success', '✅', `Informe generado correctamente. <strong>${data.rows.length}</strong> colaboradores · <strong>${data.courses.length}</strong> cursos detectados.`);
+            document.getElementById('downloadBar').classList.add('visible');
+            resetBtn();
+          } catch (err) {
+            console.error(err);
+            setStatus('error', '❌', 'Error al procesar el archivo: ' + err.message);
+            resetBtn();
+          }
+        },
+        error: function (err) {
+          setStatus('error', '❌', 'Error al leer el CSV: ' + err.message);
+          resetBtn();
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      setStatus('error', '❌', 'Error inesperado: ' + err.message);
+      resetBtn();
+    }
+  };
+
+  reader.onerror = function () {
+    setStatus('error', '❌', 'No se pudo leer el archivo.');
+    resetBtn();
+  };
+
+  reader.readAsText(file, 'UTF-8');
+});
+
+btnDownload.addEventListener('click', async function () {
+  if (!parsedData) {
+    setStatus('warning', '⚠️', 'Primero genera el informe.');
+    return;
+  }
+  btnDownload.disabled = true;
+  btnDownload.innerHTML = '<span class="spinner" style="border-color:rgba(30,58,95,.3);border-top-color:#1E3A5F"></span> Generando Excel…';
+  try {
+    await exportExcel(parsedData);
+    setStatus('success', '✅', 'Archivo descargado correctamente.');
+  } catch (err) {
+    console.error(err);
+    setStatus('error', '❌', 'Error al generar el Excel: ' + err.message);
+  } finally {
+    btnDownload.disabled = false;
+    btnDownload.innerHTML = '📥 Descargar Excel';
+  }
+});
+
+function resetBtn() {
+  btnGenerate.disabled = false;
+  btnGenerate.innerHTML = '⚙️ Generar informe';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Reportes NOM-035 · Guía II</title>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-2: #25406E;
+    --blue: #2C5AA0;
+    --grey: #6B7280;
+    --light: #F4F6FA;
+    --line: #D8DEE9;
+    --nulo: #3AB7BF;
+    --bajo: #4CAF50;
+    --medio: #F2C230;
+    --alto: #F28C28;
+    --muyalto: #E14B4B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: #EEF1F7;
+    color: #1F2430;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; }
+  .app-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 26px;
+  }
+  .app-header .mark {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 18px;
+    flex-shrink: 0;
+  }
+  .app-header h1 { font-size: 19px; margin: 0; color: var(--navy); }
+  .app-header p { margin: 2px 0 0; font-size: 12.5px; color: var(--grey); }
+
+  .card {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--blue);
+    margin: 0 0 14px;
+  }
+
+  .drop-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .drop-row { grid-template-columns: 1fr; } }
+
+  .dropzone {
+    border: 1.6px dashed var(--line);
+    border-radius: 12px;
+    padding: 22px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    background: var(--light);
+    position: relative;
+  }
+  .dropzone:hover, .dropzone.drag { border-color: var(--blue); background: #EAF0FA; }
+  .dropzone input { display: none; }
+  .dropzone .dz-icon { font-size: 26px; margin-bottom: 6px; }
+  .dropzone .dz-title { font-size: 13.5px; font-weight: 600; color: var(--navy); }
+  .dropzone .dz-sub { font-size: 11.5px; color: var(--grey); margin-top: 3px; }
+  .dropzone .dz-file {
+    margin-top: 10px; font-size: 12px; color: var(--blue); font-weight: 600;
+    word-break: break-all;
+  }
+  .dropzone .dz-clear {
+    position: absolute; top: 8px; right: 10px; font-size: 11px; color: var(--grey);
+    background: none; border: none; cursor: pointer; text-decoration: underline;
+  }
+
+  .logo-preview { max-width: 100%; max-height: 52px; margin-top: 8px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--navy); color: white; border: none;
+    padding: 12px 22px; border-radius: 9px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background .15s, transform .05s;
+  }
+  .btn:hover:not(:disabled) { background: var(--navy-2); }
+  .btn:active:not(:disabled) { transform: scale(.98); }
+  .btn:disabled { background: #B9C0CE; cursor: not-allowed; }
+  .btn.secondary { background: white; color: var(--navy); border: 1.4px solid var(--line); }
+  .btn.secondary:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); background: #F7FAFF; }
+
+  .actions-row { display: flex; justify-content: flex-end; margin-top: 18px; }
+
+  .status-line {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--grey); margin-top: 12px;
+  }
+  .spinner {
+    width: 15px; height: 15px; border-radius: 50%;
+    border: 2.2px solid var(--line); border-top-color: var(--blue);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .warn-box {
+    background: #FFF8E8; border: 1px solid #F2C230; border-radius: 10px;
+    padding: 12px 16px; font-size: 12.5px; color: #6B5410; margin-top: 12px;
+  }
+  .warn-box ul { margin: 6px 0 0; padding-left: 18px; }
+  .error-box {
+    background: #FDEEEE; border: 1px solid var(--muyalto); border-radius: 10px;
+    padding: 12px 16px; font-size: 12.5px; color: #8A2A2A; margin-top: 12px;
+  }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 720px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  .kpi {
+    border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+    text-align: center; background: var(--light);
+  }
+  .kpi .kpi-label { font-size: 11px; color: var(--grey); text-transform: uppercase; letter-spacing: .03em; }
+  .kpi .kpi-value { font-size: 22px; font-weight: 700; color: var(--navy); margin-top: 6px; }
+
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11.5px; font-weight: 700; color: white;
+  }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 8px; }
+  table.data-table th {
+    background: var(--navy); color: white; text-align: left;
+    padding: 8px 10px; font-size: 11.5px;
+  }
+  table.data-table td { padding: 7px 10px; border-bottom: 1px solid var(--line); }
+  table.data-table tr:nth-child(even) td { background: var(--light); }
+
+  .downloads { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+
+  .footnote { font-size: 11.5px; color: var(--grey); margin-top: 14px; line-height: 1.5; }
+
+  .hidden { display: none !important; }
+
+  #chartSandbox { position: absolute; left: -9999px; top: -9999px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="app-header">
+    <div class="mark">N-035</div>
+    <div>
+      <h1>Generador de Reportes NOM-035 · Guía de Referencia II</h1>
+      <p>Sube el export crudo de la plataforma y genera el PDF ejecutivo y el Excel de resultados.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1 · Cargar información</h2>
+    <div class="drop-row">
+      <div class="dropzone" id="dataDrop">
+        <button class="dz-clear hidden" id="dataClear">quitar</button>
+        <div class="dz-icon">📄</div>
+        <div class="dz-title">Base de datos (.xlsx)</div>
+        <div class="dz-sub">Arrastra el archivo o haz clic para seleccionarlo</div>
+        <div class="dz-file" id="dataFileName"></div>
+        <input type="file" id="dataInput" accept=".xlsx,.xls">
+      </div>
+      <div class="dropzone" id="logoDrop">
+        <button class="dz-clear hidden" id="logoClear">quitar</button>
+        <div class="dz-icon">🏢</div>
+        <div class="dz-title">Logo del cliente (opcional)</div>
+        <div class="dz-sub">PNG o JPG, fondo transparente de preferencia</div>
+        <img class="logo-preview hidden" id="logoPreview">
+        <input type="file" id="logoInput" accept="image/png,image/jpeg">
+      </div>
+    </div>
+    <div class="actions-row">
+      <button class="btn" id="processBtn" disabled>Generar reporte</button>
+    </div>
+    <div class="status-line hidden" id="statusLine">
+      <div class="spinner"></div>
+      <span id="statusText">Procesando…</span>
+    </div>
+    <div class="error-box hidden" id="errorBox"></div>
+  </div>
+
+  <div class="card hidden" id="resultsCard">
+    <h2>2 · Resultado general</h2>
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="warn-box hidden" id="warnBox">
+      <strong>Observaciones de calidad de datos</strong>
+      <ul id="warnList"></ul>
+    </div>
+    <h2 style="margin-top:22px">Resultado por departamento</h2>
+    <div id="deptTableWrap"></div>
+  </div>
+
+  <div class="card hidden" id="downloadCard">
+    <h2>3 · Descargar entregables</h2>
+    <div class="downloads">
+      <button class="btn" id="downloadPdfBtn">⬇ Descargar PDF ejecutivo</button>
+      <button class="btn secondary" id="downloadXlsxBtn">⬇ Descargar Excel de resultados</button>
+    </div>
+    <p class="footnote">
+      El PDF incluye portada, metodología, resultados por categoría/dominio/departamento, anexo individual por
+      colaborador, valoración médica, hallazgos y recomendaciones. El Excel incluye el detalle por colaborador,
+      categoría, dominio y departamento.
+    </p>
+  </div>
+
+  <p class="footnote">
+    Formato esperado de la base: export de la plataforma con columnas
+    <code>nombre_del_evaluado, correo_del_evaluado, nombre_de_la_seccion, respuesta_valor, estado_de_la_evaluacion,
+    instancia, nombre_del_ciclo</code>, e idealmente <code>Departamento</code> y <code>Puesto</code>. Si faltan
+    Departamento o Puesto, el reporte se genera igual y lo indica en observaciones.
+  </p>
+
+  <div id="chartSandbox">
+    <canvas id="cvCategorias" width="1600" height="640"></canvas>
+    <canvas id="cvDominios" width="1600" height="840"></canvas>
+    <canvas id="cvDistribucion" width="1000" height="1000"></canvas>
+    <canvas id="cvDeptoApilado" width="1600" height="900"></canvas>
+    <canvas id="cvDeptoRanking" width="1600" height="840"></canvas>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script>
+// ============================================================
+// NOM-035 Guía de Referencia II — lógica de cómputo compartida
+// ============================================================
+
+const DOMAIN_FIX = {
+  "Interferencia en la relacion trabajo-familia": "Interferencia en la relación trabajo-familia",
+};
+
+function stripAccents(s) {
+  return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function normDomain(d) {
+  d = (d || "").toString().trim();
+  return DOMAIN_FIX[d] || d;
+}
+
+const DOMAIN_TO_CATEGORY = {
+  "Condiciones en el ambiente de trabajo": "Ambiente de trabajo",
+  "Carga de trabajo": "Factores propios de la actividad",
+  "Falta de control sobre el trabajo": "Factores propios de la actividad",
+  "Jornadas de trabajo": "Organización del tiempo de trabajo",
+  "Interferencia en la relación trabajo-familia": "Organización del tiempo de trabajo",
+  "Liderazgo": "Liderazgo y relaciones en el trabajo",
+  "Relaciones en el trabajo": "Liderazgo y relaciones en el trabajo",
+  "Violencia": "Liderazgo y relaciones en el trabajo",
+};
+
+const DOMAIN_ORDER = [
+  "Condiciones en el ambiente de trabajo",
+  "Carga de trabajo",
+  "Falta de control sobre el trabajo",
+  "Jornadas de trabajo",
+  "Interferencia en la relación trabajo-familia",
+  "Liderazgo",
+  "Relaciones en el trabajo",
+  "Violencia",
+];
+
+const CATEGORY_ORDER = [
+  "Ambiente de trabajo",
+  "Factores propios de la actividad",
+  "Organización del tiempo de trabajo",
+  "Liderazgo y relaciones en el trabajo",
+];
+
+const CATEGORY_RANGES = {
+  "Ambiente de trabajo": [3, 5, 7, 9],
+  "Factores propios de la actividad": [10, 20, 30, 40],
+  "Organización del tiempo de trabajo": [4, 6, 9, 12],
+  "Liderazgo y relaciones en el trabajo": [10, 18, 28, 38],
+};
+
+const DOMAIN_RANGES = {
+  "Condiciones en el ambiente de trabajo": [3, 5, 7, 9],
+  "Carga de trabajo": [12, 16, 20, 24],
+  "Falta de control sobre el trabajo": [5, 8, 11, 14],
+  "Jornadas de trabajo": [1, 2, 4, 6],
+  "Interferencia en la relación trabajo-familia": [1, 2, 4, 6],
+  "Liderazgo": [3, 5, 8, 11],
+  "Relaciones en el trabajo": [5, 8, 11, 14],
+  "Violencia": [7, 10, 13, 16],
+};
+
+const LEVELS = ["Nulo o despreciable", "Bajo", "Medio", "Alto", "Muy alto"];
+
+const LEVEL_COLOR = {
+  "Nulo o despreciable": "#3AB7BF",
+  "Bajo": "#4CAF50",
+  "Medio": "#F2C230",
+  "Alto": "#F28C28",
+  "Muy alto": "#E14B4B",
+};
+
+function scaleFromRanges(v, r) {
+  if (v < r[0]) return LEVELS[0];
+  if (v < r[1]) return LEVELS[1];
+  if (v < r[2]) return LEVELS[2];
+  if (v < r[3]) return LEVELS[3];
+  return LEVELS[4];
+}
+
+function scaleCuestionario(c) {
+  if (c < 20) return LEVELS[0];
+  if (c < 45) return LEVELS[1];
+  if (c < 70) return LEVELS[2];
+  if (c < 90) return LEVELS[3];
+  return LEVELS[4];
+}
+
+function getField(row, ...names) {
+  for (const n of names) {
+    if (row[n] !== undefined && row[n] !== null && row[n] !== "") return row[n];
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------
+// Main pipeline: raw rows (array of objects from sheet_to_json) -> dataset
+// ---------------------------------------------------------------
+function buildReport(rows) {
+  const warnings = [];
+  const badValues = [];
+  const unknownDomains = new Set();
+  const parsed = [];
+  let hasDept = false, hasJob = false;
+
+  for (const r of rows) {
+    let rawVal = getField(r, "respuesta_valor");
+    let val = rawVal === null ? NaN : Number(rawVal);
+    if (Number.isNaN(val) || val < 0 || val > 4) {
+      badValues.push(rawVal);
+      continue;
+    }
+    const dom = normDomain(getField(r, "nombre_de_la_seccion", "dominio"));
+    if (!DOMAIN_TO_CATEGORY[dom]) {
+      unknownDomains.add(dom);
+      continue;
+    }
+    const dept = getField(r, "Departamento", "departamento", "division");
+    const job = getField(r, "Puesto", "puesto", "job");
+    if (dept) hasDept = true;
+    if (job) hasJob = true;
+    const name = (getField(r, "nombre_del_evaluado", "employee_name") || "").toString().trim();
+    if (!name) continue;
+    parsed.push({
+      employee_name: name,
+      employee_email: getField(r, "correo_del_evaluado", "employee_email") || "",
+      division: (dept || "Sin departamento").toString().trim(),
+      job: (job || "No disponible").toString().trim(),
+      dominio: dom,
+      categoria: DOMAIN_TO_CATEGORY[dom],
+      answered: val,
+      estado: getField(r, "estado_de_la_evaluacion"),
+    });
+  }
+
+  if (parsed.length === 0) {
+    throw new Error("No se encontraron filas válidas (0–4) en la base. Verifica el formato del archivo.");
+  }
+
+  if (!hasDept) warnings.push("La base no incluye columna de Departamento/división; se agrupó todo como 'Sin departamento'.");
+  if (!hasJob) warnings.push("La base no incluye columna de Puesto; se marcó como 'No disponible'.");
+  if (badValues.length) warnings.push(`Se descartaron ${badValues.length} respuesta(s) fuera del rango 0–4.`);
+  if (unknownDomains.size) warnings.push(`Se descartaron filas con dominio no reconocido: ${[...unknownDomains].join(", ")}`);
+
+  const meta0 = rows[0] || {};
+  const empresa = getField(meta0, "instancia", "empresa") || "Empresa";
+  const ciclo = getField(meta0, "nombre_del_ciclo", "ciclo") || "NOM 035 - GUÍA DE REFERENCIA II";
+
+  // group by employee
+  const empGroups = new Map();
+  for (const r of parsed) {
+    if (!empGroups.has(r.employee_name)) empGroups.set(r.employee_name, []);
+    empGroups.get(r.employee_name).push(r);
+  }
+
+  const qCounts = [...empGroups.values()].map(v => v.length);
+  const expectedQ = mode(qCounts);
+  const incompleteEmployees = [];
+  const unfinishedEmployees = [];
+
+  const employees = {};
+  for (const [name, rr] of empGroups) {
+    if (rr.length !== expectedQ) incompleteEmployees.push(name);
+    const estados = new Set(rr.map(r => r.estado));
+    if (!(estados.size === 1 && estados.has("finished"))) unfinishedEmployees.push(name);
+
+    const total = rr.reduce((s, r) => s + r.answered, 0);
+    const byCat = {}, byDom = {};
+    for (const c of CATEGORY_ORDER) byCat[c] = 0;
+    for (const d of DOMAIN_ORDER) byDom[d] = 0;
+    for (const r of rr) {
+      byCat[r.categoria] += r.answered;
+      byDom[r.dominio] += r.answered;
+    }
+    const catResults = {};
+    for (const c of CATEGORY_ORDER) {
+      catResults[c] = { resultado: byCat[c], nivel: scaleFromRanges(byCat[c], CATEGORY_RANGES[c]) };
+    }
+    const domResults = {};
+    for (const d of DOMAIN_ORDER) {
+      domResults[d] = { resultado: byDom[d], nivel: scaleFromRanges(byDom[d], DOMAIN_RANGES[d]), categoria: DOMAIN_TO_CATEGORY[d] };
+    }
+    const nivelGeneral = scaleCuestionario(total);
+    const violenciaNivel = domResults["Violencia"].nivel;
+    const valoracionMedica = (nivelGeneral === "Muy alto" || violenciaNivel === "Alto" || violenciaNivel === "Muy alto") ? "Sí" : "No";
+
+    employees[name] = {
+      employee_name: name,
+      employee_email: rr[0].employee_email,
+      division: rr[0].division,
+      job: rr[0].job,
+      resultado_cuestionario_individual: total,
+      resultado_cuestionario_individual_escala: nivelGeneral,
+      resultado_categoria_individual: catResults,
+      resultado_dominio_individual: domResults,
+      valoracion_medica: valoracionMedica,
+      n_preguntas: rr.length,
+    };
+  }
+
+  const empList = Object.values(employees);
+  const nEmp = empList.length;
+  const companyAvg = empList.reduce((s, e) => s + e.resultado_cuestionario_individual, 0) / nEmp;
+  const companyLevel = scaleCuestionario(companyAvg);
+
+  const catAvgs = {};
+  for (const c of CATEGORY_ORDER) {
+    const vals = empList.map(e => e.resultado_categoria_individual[c].resultado);
+    const avg = vals.reduce((a, b) => a + b, 0) / nEmp;
+    const nAM = empList.filter(e => ["Alto", "Muy alto"].includes(e.resultado_categoria_individual[c].nivel)).length;
+    const dist = {}; for (const l of LEVELS) dist[l] = empList.filter(e => e.resultado_categoria_individual[c].nivel === l).length;
+    catAvgs[c] = { resultado_promedio: avg, nivel: scaleFromRanges(avg, CATEGORY_RANGES[c]), n_alto_muyalto: nAM, pct_alto_muyalto: round1(100 * nAM / nEmp), distribucion: dist };
+  }
+
+  const domAvgs = {};
+  for (const d of DOMAIN_ORDER) {
+    const vals = empList.map(e => e.resultado_dominio_individual[d].resultado);
+    const avg = vals.reduce((a, b) => a + b, 0) / nEmp;
+    const nAM = empList.filter(e => ["Alto", "Muy alto"].includes(e.resultado_dominio_individual[d].nivel)).length;
+    const dist = {}; for (const l of LEVELS) dist[l] = empList.filter(e => e.resultado_dominio_individual[d].nivel === l).length;
+    domAvgs[d] = { resultado_promedio: avg, nivel: scaleFromRanges(avg, DOMAIN_RANGES[d]), categoria: DOMAIN_TO_CATEGORY[d], n_alto_muyalto: nAM, pct_alto_muyalto: round1(100 * nAM / nEmp), distribucion: dist };
+  }
+
+  const topCategory = Object.entries(catAvgs).sort((a, b) => b[1].resultado_promedio - a[1].resultado_promedio)[0];
+  const topDomain = Object.entries(domAvgs).sort((a, b) => b[1].resultado_promedio - a[1].resultado_promedio)[0];
+
+  const distGeneral = {};
+  for (const l of LEVELS) {
+    const n = empList.filter(e => e.resultado_cuestionario_individual_escala === l).length;
+    distGeneral[l] = { n, pct: round1(100 * n / nEmp) };
+  }
+
+  const deptGroups = new Map();
+  for (const e of empList) {
+    if (!deptGroups.has(e.division)) deptGroups.set(e.division, []);
+    deptGroups.get(e.division).push(e);
+  }
+  const departamentos = {};
+  for (const [dept, emps] of deptGroups) {
+    const avg = emps.reduce((s, e) => s + e.resultado_cuestionario_individual, 0) / emps.length;
+    const dist = {}; for (const l of LEVELS) dist[l] = emps.filter(e => e.resultado_cuestionario_individual_escala === l).length;
+    const nAM = dist["Alto"] + dist["Muy alto"];
+    const counts = {}; for (const l of LEVELS) counts[l] = dist[l];
+    let predominante = LEVELS.reduce((best, l) => (counts[l] > (counts[best] || 0) ? l : best), LEVELS[0]);
+    departamentos[dept] = { n_empleados: emps.length, resultado_promedio: avg, nivel_promedio: scaleCuestionario(avg), distribucion: dist, pct_alto_muyalto: round1(100 * nAM / emps.length), nivel_predominante: predominante };
+  }
+  const topDept = Object.entries(departamentos).sort((a, b) => b[1].resultado_promedio - a[1].resultado_promedio)[0];
+  const deptsRankedByPct = Object.entries(departamentos).sort((a, b) => b[1].pct_alto_muyalto - a[1].pct_alto_muyalto).map(x => x[0]);
+
+  const vmCounts = { "Sí": 0, "No": 0 };
+  for (const e of empList) vmCounts[e.valoracion_medica]++;
+  const vmPct = {}; for (const k of Object.keys(vmCounts)) vmPct[k] = round1(100 * vmCounts[k] / nEmp);
+  const vmLista = empList.filter(e => e.valoracion_medica === "Sí").map(e => ({
+    employee_name: e.employee_name, division: e.division, job: e.job,
+    resultado_cuestionario_individual: e.resultado_cuestionario_individual,
+    resultado_cuestionario_individual_escala: e.resultado_cuestionario_individual_escala,
+  }));
+
+  return {
+    meta: {
+      empresa, ciclo,
+      fecha_generacion: formatDateDMY(new Date()),
+      total_colaboradores: nEmp,
+      total_departamentos: Object.keys(departamentos).length,
+      expected_questions_per_employee: expectedQ,
+      incomplete_employees: incompleteEmployees,
+      unfinished_employees: unfinishedEmployees,
+      bad_values_found: badValues,
+      warnings,
+    },
+    empresa: {
+      resultado_promedio: companyAvg,
+      nivel_riesgo_general: companyLevel,
+      departamento_mayor_riesgo: topDept[0],
+      categoria_mayor_puntaje: topCategory[0],
+      dominio_mayor_puntaje: topDomain[0],
+    },
+    categorias: catAvgs,
+    dominios: domAvgs,
+    distribucion_general: distGeneral,
+    departamentos,
+    depts_ranked_by_pct: deptsRankedByPct,
+    valoracion_medica: { counts: vmCounts, pct: vmPct, lista: vmLista },
+    empleados: employees,
+  };
+}
+
+function mode(arr) {
+  const counts = new Map();
+  for (const v of arr) counts.set(v, (counts.get(v) || 0) + 1);
+  let best = arr[0], bestCount = 0;
+  for (const [v, c] of counts) if (c > bestCount) { best = v; bestCount = c; }
+  return best;
+}
+function round1(v) { return Math.round(v * 10) / 10; }
+function formatDateDMY(d) {
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+
+
+</script>
+<script>
+// ============================================================
+// Generación de gráficas (Chart.js) -> dataURL PNG
+// ============================================================
+
+function valueLabelPluginH() {
+  return {
+    id: "valueLabelsH",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      ctx.save();
+      ctx.fillStyle = "#1B2A4A";
+      ctx.font = "bold 22px Arial";
+      ctx.textBaseline = "middle";
+      chart.data.datasets.forEach((dataset, di) => {
+        const meta = chart.getDatasetMeta(di);
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          if (value === 0 || value === null) return;
+          ctx.fillText(Number(value).toFixed(1), bar.x + 10, bar.y);
+        });
+      });
+      ctx.restore();
+    },
+  };
+}
+
+function stackedLabelPlugin() {
+  return {
+    id: "stackedLabels",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      ctx.save();
+      ctx.fillStyle = "white";
+      ctx.font = "bold 18px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      chart.data.datasets.forEach((dataset, di) => {
+        const meta = chart.getDatasetMeta(di);
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          if (!value) return;
+          ctx.fillText(String(value), bar.x, bar.y);
+        });
+      });
+      ctx.restore();
+    },
+  };
+}
+
+function rankingLabelPlugin() {
+  return {
+    id: "rankingLabels",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      ctx.save();
+      ctx.fillStyle = "#1B2A4A";
+      ctx.font = "bold 20px Arial";
+      ctx.textBaseline = "middle";
+      const meta = chart.getDatasetMeta(0);
+      meta.data.forEach((bar, i) => {
+        const value = chart.data.datasets[0].data[i];
+        if (!value) return;
+        ctx.fillText(value.toFixed(0) + "%", bar.x + 8, bar.y);
+      });
+      ctx.restore();
+    },
+  };
+}
+
+async function paintLogoWatermark(canvas, logoImg) {
+  if (!logoImg) return;
+  const ctx = canvas.getContext("2d");
+  const targetH = canvas.height * 0.09;
+  const ratio = targetH / logoImg.height;
+  const targetW = logoImg.width * ratio;
+  const margin = canvas.height * 0.02;
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+  ctx.drawImage(logoImg, canvas.width - targetW - margin, canvas.height - targetH - margin, targetW, targetH);
+  ctx.restore();
+}
+
+function loadImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    if (!dataUrl) { resolve(null); return; }
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+async function generateCharts(D, logoDataUrl) {
+  const logoImg = await loadImage(logoDataUrl);
+  const charts = {};
+
+  // ---- Categorías ----
+  {
+    const entries = Object.entries(D.categorias).sort((a, b) => a[1].resultado_promedio - b[1].resultado_promedio);
+    const canvas = document.getElementById("cvCategorias");
+    const chart = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: entries.map(e => e[0]),
+        datasets: [{
+          data: entries.map(e => e[1].resultado_promedio),
+          backgroundColor: entries.map(e => LEVEL_COLOR[e[1].nivel]),
+          barThickness: 46,
+        }],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: false,
+        animation: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: "#E5E9F0" }, ticks: { font: { size: 20 }, color: "#6B7280" } },
+          y: { grid: { display: false }, ticks: { font: { size: 22 }, color: "#1B2A4A" } },
+        },
+        layout: { padding: { right: 60 } },
+      },
+      plugins: [valueLabelPluginH()],
+    });
+    await paintLogoWatermark(canvas, logoImg);
+    charts.categorias = canvas.toDataURL("image/png", 1.0);
+    chart.destroy();
+  }
+
+  // ---- Dominios ----
+  {
+    const entries = Object.entries(D.dominios).sort((a, b) => a[1].resultado_promedio - b[1].resultado_promedio);
+    const canvas = document.getElementById("cvDominios");
+    const chart = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: entries.map(e => e[0]),
+        datasets: [{
+          data: entries.map(e => e[1].resultado_promedio),
+          backgroundColor: entries.map(e => LEVEL_COLOR[e[1].nivel]),
+          barThickness: 40,
+        }],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: false,
+        animation: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: "#E5E9F0" }, ticks: { font: { size: 19 }, color: "#6B7280" } },
+          y: { grid: { display: false }, ticks: { font: { size: 19 }, color: "#1B2A4A" } },
+        },
+        layout: { padding: { right: 60 } },
+      },
+      plugins: [valueLabelPluginH()],
+    });
+    await paintLogoWatermark(canvas, logoImg);
+    charts.dominios = canvas.toDataURL("image/png", 1.0);
+    chart.destroy();
+  }
+
+  // ---- Distribución general (donut) ----
+  {
+    const labels = LEVELS.filter(l => D.distribucion_general[l].n > 0);
+    const canvas = document.getElementById("cvDistribucion");
+    const chart = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: labels.map(l => `${l} (${D.distribucion_general[l].n})`),
+        datasets: [{
+          data: labels.map(l => D.distribucion_general[l].n),
+          backgroundColor: labels.map(l => LEVEL_COLOR[l]),
+          borderColor: "white",
+          borderWidth: 3,
+        }],
+      },
+      options: {
+        responsive: false,
+        animation: false,
+        cutout: "58%",
+        plugins: {
+          legend: { position: "right", labels: { font: { size: 20 }, color: "#1B2A4A", boxWidth: 18, padding: 16 } },
+        },
+      },
+    });
+    await paintLogoWatermark(canvas, logoImg);
+    charts.distribucion = canvas.toDataURL("image/png", 1.0);
+    chart.destroy();
+  }
+
+  // ---- Departamentos apilado ----
+  {
+    const depts = Object.keys(D.departamentos).sort((a, b) => D.departamentos[b].resultado_promedio - D.departamentos[a].resultado_promedio);
+    const canvas = document.getElementById("cvDeptoApilado");
+    const datasets = LEVELS.map(lvl => ({
+      label: lvl,
+      data: depts.map(d => D.departamentos[d].distribucion[lvl]),
+      backgroundColor: LEVEL_COLOR[lvl],
+      barThickness: 26,
+    }));
+    const chart = new Chart(canvas, {
+      type: "bar",
+      data: { labels: depts, datasets },
+      options: {
+        indexAxis: "y",
+        responsive: false,
+        animation: false,
+        scales: {
+          x: { stacked: true, grid: { color: "#E5E9F0" }, ticks: { font: { size: 18 }, color: "#6B7280" } },
+          y: { stacked: true, grid: { display: false }, ticks: { font: { size: 18 }, color: "#1B2A4A" } },
+        },
+        plugins: {
+          legend: { position: "bottom", labels: { font: { size: 17 }, color: "#1B2A4A" } },
+        },
+      },
+      plugins: [stackedLabelPlugin()],
+    });
+    await paintLogoWatermark(canvas, logoImg);
+    charts.deptoApilado = canvas.toDataURL("image/png", 1.0);
+    chart.destroy();
+  }
+
+  // ---- Ranking departamentos ----
+  {
+    const depts = D.depts_ranked_by_pct.slice().reverse();
+    const canvas = document.getElementById("cvDeptoRanking");
+    const chart = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: depts,
+        datasets: [{
+          data: depts.map(d => D.departamentos[d].pct_alto_muyalto),
+          backgroundColor: depts.map(d => D.departamentos[d].pct_alto_muyalto > 0 ? "#E14B4B" : "#C9D1DE"),
+          barThickness: 34,
+        }],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: false,
+        animation: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: "#E5E9F0" }, ticks: { font: { size: 18 }, color: "#6B7280" } },
+          y: { grid: { display: false }, ticks: { font: { size: 18 }, color: "#1B2A4A" } },
+        },
+        layout: { padding: { right: 60 } },
+      },
+      plugins: [rankingLabelPlugin()],
+    });
+    await paintLogoWatermark(canvas, logoImg);
+    charts.deptoRanking = canvas.toDataURL("image/png", 1.0);
+    chart.destroy();
+  }
+
+  return charts;
+}
+
+</script>
+<script>
+// ============================================================
+// Construcción del PDF ejecutivo (pdfmake)
+// ============================================================
+
+const NAVY = "#1B2A4A";
+const NAVY2 = "#25406E";
+const BLUE = "#2C5AA0";
+const GREY = "#6B7280";
+const LIGHT = "#F4F6FA";
+const LINE = "#D8DEE9";
+
+function fmt1(v) { return Number(v).toFixed(1); }
+
+function badgeCell(level) {
+  return { text: level, color: "white", bold: true, fillColor: LEVEL_COLOR[level], alignment: "center", fontSize: 8.5, margin: [0, 2, 0, 2] };
+}
+
+function headerCell(text) {
+  return { text, bold: true, color: "white", fontSize: 9, fillColor: NAVY };
+}
+
+function cell(text, opts) {
+  return Object.assign({ text: String(text), fontSize: 9 }, opts || {});
+}
+
+function tableAuto(headers, rows, widths) {
+  return {
+    table: {
+      headerRows: 1,
+      widths: widths || headers.map(() => "*"),
+      body: [headers.map(headerCell), ...rows],
+    },
+    layout: {
+      fillColor: (rowIndex) => (rowIndex === 0 ? null : (rowIndex % 2 === 0 ? LIGHT : null)),
+      hLineWidth: () => 0.5, vLineWidth: () => 0.5,
+      hLineColor: () => LINE, vLineColor: () => LINE,
+      paddingLeft: () => 4, paddingRight: () => 4, paddingTop: () => 4, paddingBottom: () => 4,
+    },
+    margin: [0, 4, 0, 10],
+  };
+}
+
+function kpiCard(label, value, color) {
+  return {
+    table: {
+      widths: ["*"],
+      body: [[{
+        stack: [
+          { text: label, alignment: "center", fontSize: 8.5, color: GREY, margin: [0, 0, 0, 4] },
+          { text: String(value), alignment: "center", fontSize: value.toString().length > 14 ? 12 : 17, bold: true, color: color || NAVY },
+        ],
+        margin: [4, 10, 4, 10],
+      }]],
+    },
+    layout: { hLineWidth: () => 0.8, vLineWidth: () => 0.8, hLineColor: () => LINE, vLineColor: () => LINE },
+  };
+}
+
+function sectionTitle(numTitle) {
+  return [
+    { text: numTitle, style: "h1" },
+    { canvas: [{ type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: LINE }], margin: [0, 2, 0, 12] },
+  ];
+}
+
+function logoBadge(imgKey, imgWidth, pad) {
+  return {
+    table: { widths: ["auto"], body: [[{ image: imgKey, width: imgWidth, margin: [pad, pad, pad, pad] }]] },
+    layout: {
+      fillColor: () => "white",
+      hLineWidth: () => 0, vLineWidth: () => 0,
+      paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0,
+    },
+  };
+}
+
+function buildHeaderTable(logoImg, empresa) {
+  const cols = [
+    { width: 40, stack: logoImg ? [logoBadge("logoWhite", 22, 4)] : [{ text: "" }], margin: [8, 4, 0, 0] },
+    { width: "*", text: "NOM-035-STPS  ·  Guía de Referencia II", color: "white", bold: true, fontSize: 9.5, margin: [0, 8, 0, 0] },
+    { width: 150, text: empresa, color: "white", fontSize: 9.5, alignment: "right", margin: [0, 8, 8, 0] },
+  ];
+  return {
+    table: { widths: [40, "*", 150], body: [cols] },
+    layout: {
+      fillColor: () => NAVY,
+      hLineWidth: () => 0, vLineWidth: () => 0,
+      paddingTop: () => 0, paddingBottom: () => 0, paddingLeft: () => 0, paddingRight: () => 0,
+    },
+  };
+}
+
+function levelOrderIndex(level) {
+  return { "Muy alto": 0, "Alto": 1, "Medio": 2, "Bajo": 3, "Nulo o despreciable": 4 }[level];
+}
+
+async function buildPdfDocDefinition(D, charts, logoDataUrl) {
+  const EMPRESA = D.meta.empresa;
+  const FECHA = D.meta.fecha_generacion;
+  const N_EMP = D.meta.total_colaboradores;
+  const N_DEPT = D.meta.total_departamentos;
+
+  const images = {
+    chartCategorias: charts.categorias,
+    chartDominios: charts.dominios,
+    chartDistribucion: charts.distribucion,
+    chartDeptoApilado: charts.deptoApilado,
+    chartDeptoRanking: charts.deptoRanking,
+  };
+  let logoImg = null;
+  if (logoDataUrl) {
+    images.logoWhite = logoDataUrl;
+    logoImg = true;
+  }
+
+  const topCats = Object.entries(D.categorias).sort((a, b) => b[1].resultado_promedio - a[1].resultado_promedio);
+  const topDoms = Object.entries(D.dominios).sort((a, b) => b[1].resultado_promedio - a[1].resultado_promedio);
+  const deptPriority = D.depts_ranked_by_pct.filter(d => D.departamentos[d].pct_alto_muyalto > 0).slice(0, 3);
+  const minDept = Object.entries(D.departamentos).sort((a, b) => a[1].resultado_promedio - b[1].resultado_promedio)[0];
+
+  const content = [];
+
+  // ---------- PORTADA ----------
+  content.push({
+    stack: [
+      logoImg ? { ...logoBadge("logoWhite", 130, 14), margin: [0, 50, 0, 0], width: 160 } : { text: "" },
+      { text: "Reporte de Resultados\nNOM-035-STPS", color: "white", fontSize: 27, bold: true, margin: [0, 170, 0, 10] },
+      { text: "Guía de Referencia II · Identificación y análisis de factores de riesgo psicosocial", color: "#C9D6EC", fontSize: 13.5, margin: [0, 0, 0, 40] },
+      {
+        columns: [
+          { width: 160, stack: [
+            { text: "Empresa", bold: true, color: "white", fontSize: 10 },
+            { text: "Ciclo de evaluación", bold: true, color: "white", fontSize: 10, margin: [0, 8, 0, 0] },
+            { text: "Fecha de generación", bold: true, color: "white", fontSize: 10, margin: [0, 8, 0, 0] },
+            { text: "Colaboradores evaluados", bold: true, color: "white", fontSize: 10, margin: [0, 8, 0, 0] },
+            { text: "Departamentos incluidos", bold: true, color: "white", fontSize: 10, margin: [0, 8, 0, 0] },
+          ]},
+          { width: "*", stack: [
+            { text: EMPRESA, color: "white", fontSize: 10 },
+            { text: D.meta.ciclo, color: "white", fontSize: 10, margin: [0, 8, 0, 0] },
+            { text: FECHA, color: "white", fontSize: 10, margin: [0, 8, 0, 0] },
+            { text: String(N_EMP), color: "white", fontSize: 10, margin: [0, 8, 0, 0] },
+            { text: String(N_DEPT), color: "white", fontSize: 10, margin: [0, 8, 0, 0] },
+          ]},
+        ],
+      },
+    ],
+    pageBreak: "after",
+  });
+
+  // ---------- ÍNDICE ----------
+  content.push(...sectionTitle("Índice"));
+  const toc = [
+    "1.  Resumen ejecutivo", "2.  Explicación metodológica", "3.  Resultado general de la empresa",
+    "4.  Resultados por categoría", "5.  Resultados por dominio", "6.  Distribución general por nivel de riesgo",
+    "7.  Distribución de riesgo por departamento", "8.  Análisis por colaborador", "9.  Valoración médica",
+    "10. Hallazgos principales", "11. Recomendaciones según nivel de riesgo", "12. Observaciones de calidad de datos",
+  ];
+  content.push({ ul: toc, fontSize: 11, margin: [0, 0, 0, 0], lineHeight: 1.7 });
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 1. RESUMEN EJECUTIVO ----------
+  content.push(...sectionTitle("1. Resumen ejecutivo"));
+  let resumen = `El resultado general de ${EMPRESA} se ubica en un nivel de riesgo `;
+  content.push({
+    text: [
+      "El resultado general de ", { text: EMPRESA, bold: false }, " se ubica en un nivel de riesgo ",
+      { text: D.empresa.nivel_riesgo_general, bold: true }, `, con un puntaje promedio de `,
+      { text: fmt1(D.empresa.resultado_promedio), bold: true },
+      ` puntos sobre la escala de la Guía de Referencia II. Se evaluaron `,
+      { text: `${N_EMP} colaboradores`, bold: true }, ` en `, { text: `${N_DEPT} departamentos`, bold: true },
+      `. Las principales áreas de atención se concentran en la categoría `,
+      { text: topCats[0][0], bold: true }, ` (nivel ${topCats[0][1].nivel}) y en el dominio `,
+      { text: topDoms[0][0], bold: true }, ` (nivel ${topDoms[0][1].nivel}), lo que sugiere la necesidad de `,
+      "fortalecer acciones relacionadas con la gestión de cargas de trabajo y el control sobre las actividades diarias.",
+      deptPriority.length ? { text: ` Los departamentos con mayor concentración de colaboradores en riesgo alto o muy alto son ${deptPriority.join(", ")}, por lo que se recomienda priorizarlos en las acciones de intervención.` } : "",
+    ],
+    fontSize: 9.8, alignment: "justify", margin: [0, 0, 0, 12], lineHeight: 1.3,
+  });
+  content.push({
+    columns: [
+      kpiCard("Resultado promedio", fmt1(D.empresa.resultado_promedio), LEVEL_COLOR[D.empresa.nivel_riesgo_general]),
+      kpiCard("Nivel de riesgo general", D.empresa.nivel_riesgo_general, LEVEL_COLOR[D.empresa.nivel_riesgo_general]),
+      kpiCard("Colaboradores evaluados", String(N_EMP)),
+      kpiCard("Departamento prioritario", D.empresa.departamento_mayor_riesgo),
+    ],
+    columnGap: 8, margin: [0, 0, 0, 14],
+  });
+  content.push({
+    text: [
+      { text: "Conclusión ejecutiva: ", bold: true },
+      "el perfil de riesgo psicosocial de la organización presenta focos de exposición identificables que requieren " +
+      "acciones de intervención dirigidas y seguimiento documentado en los casos de mayor nivel de riesgo.",
+    ],
+    fontSize: 9.8, alignment: "justify", lineHeight: 1.3,
+  });
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 2. EXPLICACIÓN METODOLÓGICA ----------
+  content.push(...sectionTitle("2. Explicación metodológica"));
+  const bodyP = (t) => ({ text: t, fontSize: 9.5, alignment: "justify", margin: [0, 0, 0, 8], lineHeight: 1.3 });
+  content.push(bodyP("La Guía de Referencia II del protocolo NOM-035-STPS es un instrumento que permite identificar y analizar los factores de riesgo psicosocial y evaluar el entorno organizacional en centros de trabajo con más de 50 trabajadores."));
+  content.push(bodyP("Codificación de respuestas: cada pregunta se responde en una escala de 0 a 4, donde el valor refleja la frecuencia o intensidad con la que el colaborador percibe el factor evaluado, respetando el sentido de cada pregunta."));
+  content.push(bodyP("Cálculo del resultado individual: el resultado del cuestionario para cada colaborador es la suma de los puntajes de todas sus respuestas (no un promedio). El resultado por categoría es la suma de las respuestas de esa categoría, y el resultado por dominio es la suma de las respuestas de ese dominio."));
+  content.push(bodyP("Diferencia entre niveles: el resultado individual refleja la percepción de un colaborador en particular; el resultado por departamento es el promedio de los resultados individuales de esa área; y el resultado general de empresa es el promedio de los resultados individuales de toda la organización."));
+
+  content.push({ text: "Escala de calificación final del cuestionario", style: "h2" });
+  content.push(tableAuto(["Resultado del cuestionario", "Nivel de riesgo"], [
+    ["Cfinal < 20", badgeCell("Nulo o despreciable")],
+    ["20 <=  Cfinal < 45", badgeCell("Bajo")],
+    ["45 <=  Cfinal < 70", badgeCell("Medio")],
+    ["70 <=  Cfinal < 90", badgeCell("Alto")],
+    ["Cfinal >=  90", badgeCell("Muy alto")],
+  ], [250, 120]));
+
+  content.push({ text: "Escala de calificación por categoría", style: "h2" });
+  const catScaleText = {
+    "Ambiente de trabajo": ["< 3", "3 - 4.9", "5 - 6.9", "7 - 8.9", ">=  9"],
+    "Factores propios de la actividad": ["< 10", "10 - 19.9", "20 - 29.9", "30 - 39.9", ">=  40"],
+    "Organización del tiempo de trabajo": ["< 4", "4 - 5.9", "6 - 8.9", "9 - 11.9", ">=  12"],
+    "Liderazgo y relaciones en el trabajo": ["< 10", "10 - 17.9", "18 - 27.9", "28 - 37.9", ">=  38"],
+  };
+  content.push(tableAuto(
+    ["Categoría", "Nulo/desp.", "Bajo", "Medio", "Alto", "Muy alto"],
+    Object.entries(catScaleText).map(([cat, r]) => [cell(cat), ...r.map(x => cell(x, { alignment: "center" }))]),
+    [148, 69, 69, 69, 69, 58]
+  ));
+  content.push({ text: "", pageBreak: "after" });
+
+  content.push({ text: "Escala de calificación por dominio", style: "h2" });
+  const domScaleText = {
+    "Condiciones en el ambiente de trabajo": ["< 3", "3 - 4.9", "5 - 6.9", "7 - 8.9", ">=  9"],
+    "Carga de trabajo": ["< 12", "12 - 15.9", "16 - 19.9", "20 - 23.9", ">=  24"],
+    "Falta de control sobre el trabajo": ["< 5", "5 - 7.9", "8 - 10.9", "11 - 13.9", ">=  14"],
+    "Jornadas de trabajo": ["< 1", "1 - 1.9", "2 - 3.9", "4 - 5.9", ">=  6"],
+    "Interferencia en la relación trabajo-familia": ["< 1", "1 - 1.9", "2 - 3.9", "4 - 5.9", ">=  6"],
+    "Liderazgo": ["< 3", "3 - 4.9", "5 - 7.9", "8 - 10.9", ">=  11"],
+    "Relaciones en el trabajo": ["< 5", "5 - 7.9", "8 - 10.9", "11 - 13.9", ">=  14"],
+    "Violencia": ["< 7", "7 - 9.9", "10 - 12.9", "13 - 15.9", ">=  16"],
+  };
+  content.push(tableAuto(
+    ["Dominio", "Nulo/desp.", "Bajo", "Medio", "Alto", "Muy alto"],
+    Object.entries(domScaleText).map(([dom, r]) => [cell(dom), ...r.map(x => cell(x, { alignment: "center" }))]),
+    [148, 69, 69, 69, 69, 58]
+  ));
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 3. RESULTADO GENERAL ----------
+  content.push(...sectionTitle("3. Resultado general de la empresa"));
+  content.push(tableAuto(["Indicador", "Resultado"], [
+    [cell("Total de colaboradores evaluados"), cell(N_EMP, { bold: true, color: NAVY })],
+    [cell("Resultado promedio empresa"), cell(fmt1(D.empresa.resultado_promedio), { bold: true, color: NAVY })],
+    [cell("Nivel de riesgo general"), cell(D.empresa.nivel_riesgo_general, { bold: true, color: NAVY })],
+    [cell("Departamento con mayor riesgo promedio"), cell(D.empresa.departamento_mayor_riesgo, { bold: true, color: NAVY })],
+    [cell("Categoría con mayor puntaje"), cell(D.empresa.categoria_mayor_puntaje, { bold: true, color: NAVY })],
+    [cell("Dominio con mayor puntaje"), cell(D.empresa.dominio_mayor_puntaje, { bold: true, color: NAVY })],
+  ], [339, 175]));
+  content.push({
+    columns: [
+      kpiCard("Resultado general", fmt1(D.empresa.resultado_promedio), LEVEL_COLOR[D.empresa.nivel_riesgo_general]),
+      kpiCard("Nivel de riesgo", D.empresa.nivel_riesgo_general, LEVEL_COLOR[D.empresa.nivel_riesgo_general]),
+    ],
+    columnGap: 10, margin: [0, 10, 0, 0], width: 300,
+  });
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 4. CATEGORÍAS ----------
+  content.push(...sectionTitle("4. Resultados por categoría"));
+  content.push(tableAuto(
+    ["Categoría", "Resultado promedio", "Nivel de riesgo", "Colab. alto/muy alto", "% alto/muy alto"],
+    topCats.map(([cat, v]) => [cell(cat), cell(fmt1(v.resultado_promedio)), badgeCell(v.nivel), cell(v.n_alto_muyalto), cell(v.pct_alto_muyalto + "%")]),
+    [167, 86, 86, 81, 70]
+  ));
+  content.push({ image: "chartCategorias", width: 495, margin: [0, 4, 0, 10] });
+  content.push(bodyP(`La categoría con mayor exposición fue ${topCats[0][0]}, con un resultado promedio de ${fmt1(topCats[0][1].resultado_promedio)} y nivel ${topCats[0][1].nivel}. Esto indica que los principales factores de riesgo se relacionan con la cantidad e intensidad de las actividades diarias, con ${topCats[0][1].pct_alto_muyalto}% de los colaboradores en nivel alto o muy alto en esta categoría.`));
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 5. DOMINIOS ----------
+  content.push(...sectionTitle("5. Resultados por dominio"));
+  content.push(tableAuto(
+    ["Dominio", "Categoría asociada", "Resultado promedio", "Nivel", "% alto/MA"],
+    topDoms.map(([dom, v]) => [cell(dom), cell(v.categoria), cell(fmt1(v.resultado_promedio)), badgeCell(v.nivel), cell(v.pct_alto_muyalto + "%")]),
+    [138, 138, 71, 71, 72]
+  ));
+  content.push({ image: "chartDominios", width: 495, margin: [0, 4, 0, 10] });
+  const criticalDoms = Object.entries(D.dominios).filter(([, v]) => ["Medio", "Alto", "Muy alto"].includes(v.nivel)).map(([d]) => d);
+  content.push(bodyP(`Los dominios que requieren mayor atención son ${criticalDoms.join(", ")}. En particular, ${topDoms[0][0]} concentra el resultado promedio más alto (${fmt1(topDoms[0][1].resultado_promedio)}, nivel ${topDoms[0][1].nivel}).`));
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 6. DISTRIBUCIÓN GENERAL ----------
+  content.push(...sectionTitle("6. Distribución general por nivel de riesgo"));
+  content.push(tableAuto(
+    ["Nivel de riesgo", "Número de empleados", "% empleados"],
+    LEVELS.map(l => [badgeCell(l), cell(D.distribucion_general[l].n), cell(D.distribucion_general[l].pct + "%")]),
+    [200, 150, 150]
+  ));
+  content.push({ image: "chartDistribucion", width: 340, margin: [0, 6, 0, 0] });
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 7. DEPARTAMENTOS ----------
+  content.push(...sectionTitle("7. Distribución de riesgo por departamento"));
+  const deptSorted = Object.keys(D.departamentos).sort((a, b) => D.departamentos[b].resultado_promedio - D.departamentos[a].resultado_promedio);
+  content.push(tableAuto(
+    ["Departamento", "Nulo", "Bajo", "Medio", "Alto", "M.Alto", "Total", "%Alto+MA", "Nivel predom."],
+    deptSorted.map(d => {
+      const v = D.departamentos[d];
+      return [cell(d, { fontSize: 8 }), cell(v.distribucion["Nulo o despreciable"]), cell(v.distribucion["Bajo"]),
+        cell(v.distribucion["Medio"]), cell(v.distribucion["Alto"]), cell(v.distribucion["Muy alto"]),
+        cell(v.n_empleados), cell(v.pct_alto_muyalto + "%"), badgeCell(v.nivel_predominante)];
+    }),
+    [108, 34, 34, 39, 34, 39, 39, 54, 77]
+  ));
+  content.push(bodyP("Nota: si un departamento cuenta con solo 1 o 2 colaboradores, su resultado debe interpretarse como referencia puntual y no como tendencia estadística de grupo."));
+  content.push({ image: "chartDeptoApilado", width: 495, margin: [0, 4, 0, 10] });
+  content.push({ text: "", pageBreak: "after" });
+  content.push({ text: "Ranking de departamentos por concentración de riesgo alto/muy alto", style: "h2" });
+  content.push({ image: "chartDeptoRanking", width: 495, margin: [0, 4, 0, 10] });
+  content.push(bodyP(deptPriority.length
+    ? `Los departamentos con mayor concentración de riesgo alto o muy alto son ${deptPriority.join(", ")}. Se recomienda priorizarlos para acciones de intervención, comunicación, revisión de cargas de trabajo y seguimiento.`
+    : "Ningún departamento presenta concentración relevante de colaboradores en nivel alto o muy alto; se recomienda dar seguimiento puntual a los casos individuales identificados en esos niveles."));
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 8. ANÁLISIS POR COLABORADOR ----------
+  content.push(...sectionTitle("8. Análisis por colaborador"));
+  content.push(bodyP("Tabla general de resultados individuales, ordenada de mayor a menor nivel de riesgo. El detalle por categoría, dominio y valoración médica de cada colaborador se incluye en el anexo individual."));
+  const empSorted = Object.values(D.empleados).sort((a, b) => levelOrderIndex(a.resultado_cuestionario_individual_escala) - levelOrderIndex(b.resultado_cuestionario_individual_escala));
+  content.push(tableAuto(
+    ["Colaborador", "Departamento", "Puesto", "Resultado", "Nivel"],
+    empSorted.map(e => [cell(e.employee_name, { fontSize: 8 }), cell(e.division, { fontSize: 8 }), cell(e.job, { fontSize: 8 }), cell(e.resultado_cuestionario_individual), badgeCell(e.resultado_cuestionario_individual_escala)]),
+    [139, 94, 139, 54, 64]
+  ));
+  content.push({ text: "", pageBreak: "after" });
+
+  content.push({ text: "Anexo — Detalle individual por colaborador", style: "h1" });
+  content.push({ canvas: [{ type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: LINE }], margin: [0, 2, 0, 12] });
+  for (const e of empSorted) {
+    const block = [];
+    block.push({ text: e.employee_name, style: "h2" });
+    block.push({ text: `${e.division} · ${e.job}`, fontSize: 8.5, color: GREY, margin: [0, 0, 0, 6] });
+    block.push(tableAuto(["Indicador", "Resultado"], [
+      [cell("Resultado cuestionario"), cell(e.resultado_cuestionario_individual, { bold: true, color: NAVY })],
+      [cell("Nivel de riesgo"), badgeCell(e.resultado_cuestionario_individual_escala)],
+      [cell("Valoración médica sugerida"), cell(e.valoracion_medica, { bold: true, color: NAVY })],
+    ], [349, 165]));
+    block.push(tableAuto(["Categoría", "Resultado", "Nivel de riesgo"],
+      CATEGORY_ORDER.map(c => [cell(c), cell(e.resultado_categoria_individual[c].resultado), badgeCell(e.resultado_categoria_individual[c].nivel)]),
+      [324, 88, 94]));
+    block.push(tableAuto(["Dominio", "Resultado", "Nivel de riesgo"],
+      DOMAIN_ORDER.map(d => [cell(d), cell(e.resultado_dominio_individual[d].resultado), badgeCell(e.resultado_dominio_individual[d].nivel)]),
+      [324, 88, 94]));
+    content.push({ stack: block, unbreakable: true, margin: [0, 0, 0, 14] });
+  }
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 9. VALORACIÓN MÉDICA ----------
+  content.push(...sectionTitle("9. Valoración médica"));
+  content.push(bodyP("La valoración médica se sugiere para los colaboradores cuyo resultado general se ubica en nivel Muy alto, o que presentan nivel Alto o Muy alto en el dominio de Violencia, conforme a los criterios de canalización del protocolo NOM-035-STPS."));
+  content.push(tableAuto(["Valoración médica", "Número de colaboradores", "%"], [
+    [cell("Sí"), cell(D.valoracion_medica.counts["Sí"] || 0), cell((D.valoracion_medica.pct["Sí"] || 0) + "%")],
+    [cell("No"), cell(D.valoracion_medica.counts["No"] || 0), cell((D.valoracion_medica.pct["No"] || 0) + "%")],
+  ], [200, 150, 150]));
+  if (D.valoracion_medica.lista.length) {
+    content.push({ text: "Colaboradores que requieren valoración médica", style: "h2" });
+    content.push(tableAuto(["Colaborador", "Departamento", "Puesto", "Resultado", "Nivel"],
+      D.valoracion_medica.lista.map(e => [cell(e.employee_name, { fontSize: 8 }), cell(e.division, { fontSize: 8 }), cell(e.job, { fontSize: 8 }), cell(e.resultado_cuestionario_individual), badgeCell(e.resultado_cuestionario_individual_escala)]),
+      [139, 94, 139, 54, 64]));
+  } else {
+    content.push(bodyP("Ningún colaborador cumple actualmente los criterios de canalización a valoración médica."));
+  }
+  content.push({ text: "Esta información es confidencial y debe manejarse conforme a los protocolos internos de privacidad de datos de salud.", fontSize: 8, color: GREY, italics: true });
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 10. HALLAZGOS ----------
+  content.push(...sectionTitle("10. Hallazgos principales"));
+  const hallazgos = [
+    `La categoría con mayor exposición es ${topCats[0][0]} (promedio ${fmt1(topCats[0][1].resultado_promedio)}, nivel ${topCats[0][1].nivel}), seguida de ${topCats[1][0]} (promedio ${fmt1(topCats[1][1].resultado_promedio)}).`,
+    `El dominio más crítico es ${topDoms[0][0]} (promedio ${fmt1(topDoms[0][1].resultado_promedio)}, nivel ${topDoms[0][1].nivel}).`,
+    `El ${D.distribucion_general["Medio"].pct}% de los colaboradores se ubica en riesgo Medio, ${D.distribucion_general["Alto"].pct}% en Alto y ${D.distribucion_general["Muy alto"].pct}% en Muy alto.`,
+    deptPriority.length ? `Los departamentos prioritarios por concentración de riesgo alto/muy alto son ${deptPriority.join(", ")}.` : "No se identifica un departamento con concentración relevante de riesgo alto/muy alto; los casos detectados son puntuales.",
+    `Existe una diferencia relevante entre el departamento de mayor riesgo (${D.empresa.departamento_mayor_riesgo}, promedio ${fmt1(D.departamentos[D.empresa.departamento_mayor_riesgo].resultado_promedio)}) y el de menor riesgo (${minDept[0]}, promedio ${fmt1(minDept[1].resultado_promedio)}).`,
+    `Se identificó ${D.valoracion_medica.counts["Sí"] || 0} colaborador(es) que cumplen criterios de canalización a valoración médica.`,
+  ];
+  content.push({ ul: hallazgos, fontSize: 9.5, lineHeight: 1.35, margin: [0, 0, 0, 0] });
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 11. RECOMENDACIONES ----------
+  content.push(...sectionTitle("11. Recomendaciones según nivel de riesgo"));
+  const recomendaciones = {
+    "Nulo o despreciable": "No se requieren medidas adicionales. Mantener acciones de prevención y difusión de la política de prevención de riesgos psicosociales.",
+    "Bajo": "Mantener acciones preventivas y reforzar la difusión de la política de prevención de riesgos psicosociales, así como programas de promoción del entorno organizacional favorable.",
+    "Medio": "Revisar la política de prevención de riesgos psicosociales y reforzar programas de prevención de factores de riesgo psicosocial, promoción del entorno organizacional favorable y prevención de la violencia laboral mediante un programa de intervención.",
+    "Alto": "Realizar análisis de cada categoría y dominio, establecer acciones de intervención, evaluar su eficacia y fortalecer controles organizacionales.",
+    "Muy alto": "Realizar análisis específico, intervención inmediata, seguimiento documentado, evaluación de eficacia y canalización de casos que lo requieran.",
+  };
+  content.push({
+    columns: [
+      { width: "auto", text: "Nivel de riesgo general de la empresa:", fontSize: 9.8, margin: [0, 5, 8, 0] },
+      { width: 90, table: { widths: ["*"], body: [[badgeCell(D.empresa.nivel_riesgo_general)]] }, layout: "noBorders" },
+    ],
+    margin: [0, 0, 0, 8],
+  });
+  content.push(bodyP(recomendaciones[D.empresa.nivel_riesgo_general]));
+  content.push({ text: "Referencia — recomendaciones por nivel de riesgo", style: "h2" });
+  content.push(tableAuto(["Nivel", "Recomendación"],
+    Object.entries(recomendaciones).map(([lvl, txt]) => [badgeCell(lvl), cell(txt, { fontSize: 8.6 })]),
+    [80, 434]));
+  content.push({ text: "", pageBreak: "after" });
+
+  // ---------- 12. OBSERVACIONES DE CALIDAD DE DATOS ----------
+  content.push(...sectionTitle("12. Observaciones de calidad de datos"));
+  const obs = [];
+  obs.push(D.meta.bad_values_found.length === 0
+    ? "Todas las respuestas se validaron en escala 0–4; no se detectaron valores fuera de rango."
+    : `Se detectaron valores fuera del rango 0–4 (${D.meta.bad_values_found.length}); fueron excluidos del cálculo y deben revisarse en el archivo fuente.`);
+  obs.push(D.meta.incomplete_employees.length === 0
+    ? `Cada uno de los ${N_EMP} colaboradores cuenta con el número esperado de ${D.meta.expected_questions_per_employee} preguntas respondidas.`
+    : `Los siguientes colaboradores no tienen el número esperado de preguntas: ${D.meta.incomplete_employees.join(", ")}.`);
+  obs.push(D.meta.unfinished_employees.length === 0
+    ? "Todas las evaluaciones tienen estado 'finished' (aplicación única y válida por colaborador)."
+    : `Colaboradores con evaluación incompleta o duplicada: ${D.meta.unfinished_employees.join(", ")}.`);
+  obs.push("Los resultados individuales, por categoría y por dominio se calculan como la suma de las respuestas (answered), validado programáticamente en cada generación.");
+  obs.push(`El total de empleados por departamento (${N_EMP}) coincide con el total general evaluado.`);
+  obs.push("La categoría de cada colaborador se deriva automáticamente a partir del mapeo oficial dominio → categoría de la Guía de Referencia II.");
+  obs.push("La valoración médica se calcula aplicando la regla de canalización de la Guía II (nivel Muy alto general, o Alto/Muy alto en el dominio de Violencia); se recomienda validar este criterio con el médico o comité NOM-035 responsable.");
+  for (const w of D.meta.warnings) obs.push(w);
+  content.push({ ul: obs, fontSize: 9.5, lineHeight: 1.35 });
+
+  const docDefinition = {
+    pageSize: "LETTER",
+    pageMargins: [36, 55, 36, 45],
+    defaultStyle: { font: "Roboto", fontSize: 9.5, color: "#222831" },
+    styles: {
+      h1: { fontSize: 16, bold: true, color: NAVY },
+      h2: { fontSize: 11.5, bold: true, color: BLUE, margin: [0, 8, 0, 6] },
+    },
+    background: function (currentPage) {
+      if (currentPage === 1) {
+        return {
+          canvas: [
+            { type: "rect", x: 0, y: 0, w: 612, h: 792, color: NAVY },
+            { type: "ellipse", x: 590, y: 40, r1: 170, r2: 170, color: BLUE, fillOpacity: 0.35 },
+            { type: "rect", x: 0, y: 610, w: 612, h: 182, color: NAVY2 },
+          ],
+        };
+      }
+      return null;
+    },
+    header: function (currentPage) {
+      if (currentPage === 1) return null;
+      return buildHeaderTable(logoImg, EMPRESA);
+    },
+    footer: function (currentPage, pageCount) {
+      if (currentPage === 1) return null;
+      return {
+        columns: [
+          { text: "Confidencial · Uso interno para Dirección, RH y Comité NOM-035", fontSize: 7, color: GREY, margin: [36, 0, 0, 0] },
+          { text: `Página ${currentPage - 1}`, fontSize: 7, color: GREY, alignment: "right", margin: [0, 0, 36, 0] },
+        ],
+      };
+    },
+    images,
+    content,
+  };
+
+  return docDefinition;
+}
+
+</script>
+<script>
+// ============================================================
+// Construcción del Excel de resultados (ExcelJS)
+// ============================================================
+
+const XL_NAVY = "FF1B2A4A";
+const XL_WHITE = "FFFFFFFF";
+const XL_LIGHT = "FFF4F6FA";
+const XL_LEVEL_FILL = {
+  "Nulo o despreciable": "FF3AB7BF",
+  "Bajo": "FF4CAF50",
+  "Medio": "FFF2C230",
+  "Alto": "FFF28C28",
+  "Muy alto": "FFE14B4B",
+};
+
+function xlHeaderRow(ws, rowIdx, headers) {
+  const row = ws.getRow(rowIdx);
+  headers.forEach((h, i) => {
+    const c = row.getCell(i + 1);
+    c.value = h;
+    c.font = { name: "Arial", bold: true, color: { argb: XL_WHITE }, size: 10 };
+    c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XL_NAVY } };
+    c.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    c.border = thinBorder();
+  });
+  row.commit();
+}
+
+function thinBorder() {
+  const side = { style: "thin", color: { argb: "FFD8DEE9" } };
+  return { top: side, bottom: side, left: side, right: side };
+}
+
+function xlBodyRow(ws, rowIdx, values, opts) {
+  opts = opts || {};
+  const row = ws.getRow(rowIdx);
+  values.forEach((v, i) => {
+    const c = row.getCell(i + 1);
+    c.value = v;
+    c.font = { name: "Arial", size: 10 };
+    c.border = thinBorder();
+    c.alignment = { vertical: "middle", wrapText: i === 0 };
+    if (opts.stripe) c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XL_LIGHT } };
+  });
+  if (opts.levelCol) {
+    const c = row.getCell(opts.levelCol);
+    const lvl = c.value;
+    if (XL_LEVEL_FILL[lvl]) {
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XL_LEVEL_FILL[lvl] } };
+      c.font = { name: "Arial", size: 10, bold: true, color: { argb: XL_WHITE } };
+      c.alignment = { horizontal: "center", vertical: "middle" };
+    }
+  }
+  if (opts.pctCol) {
+    row.getCell(opts.pctCol).numFmt = "0.0%";
+  }
+  row.commit();
+}
+
+async function buildExcelWorkbook(D) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "Generador NOM-035";
+  wb.created = new Date();
+
+  // ---- Resumen ----
+  const wsR = wb.addWorksheet("Resumen");
+  wsR.getCell("A1").value = "Reporte de Resultados NOM-035 – Guía de Referencia II";
+  wsR.getCell("A1").font = { name: "Arial", bold: true, size: 14, color: { argb: XL_NAVY } };
+  wsR.getCell("A2").value = D.meta.empresa;
+  wsR.getCell("A2").font = { name: "Arial", size: 11, color: { argb: "FF6B7280" } };
+  wsR.getCell("A3").value = `Fecha de generación: ${D.meta.fecha_generacion}`;
+  wsR.getCell("A3").font = { name: "Arial", size: 9, color: { argb: "FF6B7280" } };
+
+  const resumenRows = [
+    ["Total de colaboradores evaluados", D.meta.total_colaboradores],
+    ["Total de departamentos", D.meta.total_departamentos],
+    ["Resultado promedio empresa", Math.round(D.empresa.resultado_promedio * 100) / 100],
+    ["Nivel de riesgo general", D.empresa.nivel_riesgo_general],
+    ["Departamento con mayor riesgo", D.empresa.departamento_mayor_riesgo],
+    ["Categoría con mayor puntaje", D.empresa.categoria_mayor_puntaje],
+    ["Dominio con mayor puntaje", D.empresa.dominio_mayor_puntaje],
+  ];
+  xlHeaderRow(wsR, 5, ["Indicador", "Resultado"]);
+  resumenRows.forEach((r, i) => {
+    const row = wsR.getRow(6 + i);
+    row.getCell(1).value = r[0];
+    row.getCell(1).font = { name: "Arial", size: 10 };
+    row.getCell(2).value = r[1];
+    row.getCell(2).font = { name: "Arial", size: 10, bold: true };
+    row.getCell(1).border = thinBorder();
+    row.getCell(2).border = thinBorder();
+    row.commit();
+  });
+  wsR.columns = [{ width: 34 }, { width: 26 }];
+
+  // ---- Por colaborador ----
+  const wsE = wb.addWorksheet("Por colaborador");
+  const empHeaders = ["Colaborador", "Correo", "Departamento", "Puesto", "Resultado cuestionario", "Nivel de riesgo",
+    "Ambiente de trabajo", "Factores propios de la actividad", "Organización del tiempo de trabajo",
+    "Liderazgo y relaciones en el trabajo", "Valoración médica"];
+  xlHeaderRow(wsE, 1, empHeaders);
+  const empSorted = Object.values(D.empleados).sort((a, b) => levelOrderIndex(a.resultado_cuestionario_individual_escala) - levelOrderIndex(b.resultado_cuestionario_individual_escala));
+  empSorted.forEach((e, i) => {
+    xlBodyRow(wsE, i + 2, [
+      e.employee_name, e.employee_email, e.division, e.job,
+      e.resultado_cuestionario_individual, e.resultado_cuestionario_individual_escala,
+      e.resultado_categoria_individual["Ambiente de trabajo"].resultado,
+      e.resultado_categoria_individual["Factores propios de la actividad"].resultado,
+      e.resultado_categoria_individual["Organización del tiempo de trabajo"].resultado,
+      e.resultado_categoria_individual["Liderazgo y relaciones en el trabajo"].resultado,
+      e.valoracion_medica,
+    ], { stripe: i % 2 === 1, levelCol: 6 });
+  });
+  wsE.columns = [{ width: 26 }, { width: 30 }, { width: 18 }, { width: 30 }, { width: 12 }, { width: 14 }, { width: 14 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 14 }];
+  wsE.views = [{ state: "frozen", ySplit: 1 }];
+
+  // ---- Por categoria ----
+  const wsC = wb.addWorksheet("Por categoria");
+  xlHeaderRow(wsC, 1, ["Categoría", "Resultado promedio", "Nivel de riesgo", "Colaboradores en alto/muy alto", "% en alto/muy alto"]);
+  const catSorted = Object.entries(D.categorias).sort((a, b) => b[1].resultado_promedio - a[1].resultado_promedio);
+  catSorted.forEach(([cat, v], i) => {
+    xlBodyRow(wsC, i + 2, [cat, Math.round(v.resultado_promedio * 100) / 100, v.nivel, v.n_alto_muyalto, v.pct_alto_muyalto / 100], { stripe: i % 2 === 1, levelCol: 3, pctCol: 5 });
+  });
+  wsC.columns = [{ width: 34 }, { width: 18 }, { width: 16 }, { width: 24 }, { width: 16 }];
+
+  // ---- Por dominio ----
+  const wsD = wb.addWorksheet("Por dominio");
+  xlHeaderRow(wsD, 1, ["Dominio", "Categoría asociada", "Resultado promedio", "Nivel de riesgo", "% alto/muy alto"]);
+  const domSorted = Object.entries(D.dominios).sort((a, b) => b[1].resultado_promedio - a[1].resultado_promedio);
+  domSorted.forEach(([dom, v], i) => {
+    xlBodyRow(wsD, i + 2, [dom, v.categoria, Math.round(v.resultado_promedio * 100) / 100, v.nivel, v.pct_alto_muyalto / 100], { stripe: i % 2 === 1, levelCol: 4, pctCol: 5 });
+  });
+  wsD.columns = [{ width: 34 }, { width: 32 }, { width: 18 }, { width: 16 }, { width: 16 }];
+
+  // ---- Por departamento ----
+  const wsP = wb.addWorksheet("Por departamento");
+  xlHeaderRow(wsP, 1, ["Departamento", "Nulo", "Bajo", "Medio", "Alto", "Muy alto", "Total empleados", "% Alto + Muy alto", "Nivel predominante", "Resultado promedio"]);
+  const deptSorted = Object.entries(D.departamentos).sort((a, b) => b[1].resultado_promedio - a[1].resultado_promedio);
+  deptSorted.forEach(([dept, v], i) => {
+    const dist = v.distribucion;
+    xlBodyRow(wsP, i + 2, [
+      dept, dist["Nulo o despreciable"], dist["Bajo"], dist["Medio"], dist["Alto"], dist["Muy alto"],
+      v.n_empleados, v.pct_alto_muyalto / 100, v.nivel_predominante, Math.round(v.resultado_promedio * 100) / 100,
+    ], { stripe: i % 2 === 1, levelCol: 9, pctCol: 8 });
+  });
+  wsP.columns = [{ width: 26 }, { width: 8 }, { width: 8 }, { width: 8 }, { width: 8 }, { width: 10 }, { width: 14 }, { width: 16 }, { width: 18 }, { width: 16 }];
+
+  // ---- Valoración médica ----
+  const wsV = wb.addWorksheet("Valoracion medica");
+  xlHeaderRow(wsV, 1, ["Colaborador", "Departamento", "Puesto", "Resultado individual", "Nivel de riesgo"]);
+  if (D.valoracion_medica.lista.length) {
+    D.valoracion_medica.lista.forEach((e, i) => {
+      xlBodyRow(wsV, i + 2, [e.employee_name, e.division, e.job, e.resultado_cuestionario_individual, e.resultado_cuestionario_individual_escala], { stripe: i % 2 === 1, levelCol: 5 });
+    });
+  } else {
+    wsV.getCell("A2").value = "Ningún colaborador cumple actualmente los criterios de valoración médica.";
+    wsV.getCell("A2").font = { name: "Arial", size: 10 };
+  }
+  wsV.columns = [{ width: 26 }, { width: 20 }, { width: 30 }, { width: 16 }, { width: 14 }];
+
+  return wb;
+}
+
+</script>
+<script>
+// ============================================================
+// Lógica principal de la interfaz
+// ============================================================
+
+let state = {
+  dataFile: null,
+  dataRows: null,
+  logoDataUrl: null,
+  reportData: null,
+  chartImages: null,
+};
+
+const dataDrop = document.getElementById("dataDrop");
+const dataInput = document.getElementById("dataInput");
+const dataFileName = document.getElementById("dataFileName");
+const dataClear = document.getElementById("dataClear");
+
+const logoDrop = document.getElementById("logoDrop");
+const logoInput = document.getElementById("logoInput");
+const logoPreview = document.getElementById("logoPreview");
+const logoClear = document.getElementById("logoClear");
+
+const processBtn = document.getElementById("processBtn");
+const statusLine = document.getElementById("statusLine");
+const statusText = document.getElementById("statusText");
+const errorBox = document.getElementById("errorBox");
+
+const resultsCard = document.getElementById("resultsCard");
+const kpiGrid = document.getElementById("kpiGrid");
+const warnBox = document.getElementById("warnBox");
+const warnList = document.getElementById("warnList");
+const deptTableWrap = document.getElementById("deptTableWrap");
+
+const downloadCard = document.getElementById("downloadCard");
+const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+const downloadXlsxBtn = document.getElementById("downloadXlsxBtn");
+
+function setupDropzone(zone, input, onFile) {
+  zone.addEventListener("click", (e) => { if (e.target.tagName !== "BUTTON") input.click(); });
+  zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("drag"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("drag"));
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    zone.classList.remove("drag");
+    if (e.dataTransfer.files.length) onFile(e.dataTransfer.files[0]);
+  });
+  input.addEventListener("change", (e) => { if (e.target.files.length) onFile(e.target.files[0]); });
+}
+
+setupDropzone(dataDrop, dataInput, handleDataFile);
+setupDropzone(logoDrop, logoInput, handleLogoFile);
+
+dataClear.addEventListener("click", (e) => {
+  e.stopPropagation();
+  state.dataFile = null; state.dataRows = null;
+  dataFileName.textContent = ""; dataClear.classList.add("hidden");
+  dataInput.value = "";
+  updateProcessBtn();
+});
+
+logoClear.addEventListener("click", (e) => {
+  e.stopPropagation();
+  state.logoDataUrl = null;
+  logoPreview.classList.add("hidden"); logoPreview.src = "";
+  logoClear.classList.add("hidden");
+  logoInput.value = "";
+});
+
+function updateProcessBtn() {
+  processBtn.disabled = !state.dataRows;
+}
+
+function handleDataFile(file) {
+  errorBox.classList.add("hidden");
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: "array", cellDates: true });
+      const sheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: null, raw: true });
+      if (!rows.length) throw new Error("El archivo no contiene filas de datos.");
+      state.dataFile = file;
+      state.dataRows = rows;
+      dataFileName.textContent = `${file.name} · ${rows.length} filas`;
+      dataClear.classList.remove("hidden");
+    } catch (err) {
+      showError("No se pudo leer el archivo: " + err.message);
+      state.dataRows = null;
+    }
+    updateProcessBtn();
+  };
+  reader.onerror = () => showError("No se pudo leer el archivo seleccionado.");
+  reader.readAsArrayBuffer(file);
+}
+
+function handleLogoFile(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    state.logoDataUrl = e.target.result;
+    logoPreview.src = e.target.result;
+    logoPreview.classList.remove("hidden");
+    logoClear.classList.remove("hidden");
+  };
+  reader.readAsDataURL(file);
+}
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.classList.remove("hidden");
+}
+
+function setStatus(msg) {
+  statusLine.classList.remove("hidden");
+  statusText.textContent = msg;
+}
+function hideStatus() { statusLine.classList.add("hidden"); }
+
+processBtn.addEventListener("click", async () => {
+  if (!state.dataRows) return;
+  errorBox.classList.add("hidden");
+  resultsCard.classList.add("hidden");
+  downloadCard.classList.add("hidden");
+  processBtn.disabled = true;
+
+  try {
+    setStatus("Calculando resultados…");
+    await sleep(30);
+    const D = buildReport(state.dataRows);
+    state.reportData = D;
+
+    setStatus("Generando gráficas…");
+    await sleep(30);
+    const charts = await generateCharts(D, state.logoDataUrl);
+    state.chartImages = charts;
+
+    renderResults(D);
+
+    setStatus("Construyendo PDF…");
+    await sleep(30);
+    const docDefinition = await buildPdfDocDefinition(D, charts, state.logoDataUrl);
+    state.pdfDocDefinition = docDefinition;
+
+    setStatus("Construyendo Excel…");
+    await sleep(30);
+    const workbook = await buildExcelWorkbook(D);
+    state.excelWorkbook = workbook;
+
+    hideStatus();
+    downloadCard.classList.remove("hidden");
+  } catch (err) {
+    console.error(err);
+    hideStatus();
+    showError("Ocurrió un error al procesar la base: " + err.message);
+  } finally {
+    processBtn.disabled = false;
+  }
+});
+
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+function renderResults(D) {
+  resultsCard.classList.remove("hidden");
+
+  kpiGrid.innerHTML = "";
+  const kpis = [
+    ["Resultado promedio", D.empresa.resultado_promedio.toFixed(1), LEVEL_COLOR[D.empresa.nivel_riesgo_general]],
+    ["Nivel de riesgo general", D.empresa.nivel_riesgo_general, LEVEL_COLOR[D.empresa.nivel_riesgo_general]],
+    ["Colaboradores evaluados", D.meta.total_colaboradores, "#1B2A4A"],
+    ["Departamento prioritario", D.empresa.departamento_mayor_riesgo, "#1B2A4A"],
+  ];
+  for (const [label, value, color] of kpis) {
+    const div = document.createElement("div");
+    div.className = "kpi";
+    div.innerHTML = `<div class="kpi-label">${label}</div><div class="kpi-value" style="color:${color}">${value}</div>`;
+    kpiGrid.appendChild(div);
+  }
+
+  warnList.innerHTML = "";
+  const allWarnings = [...D.meta.warnings];
+  if (D.meta.incomplete_employees.length) allWarnings.push(`Colaboradores con número de preguntas distinto al esperado: ${D.meta.incomplete_employees.join(", ")}`);
+  if (D.meta.unfinished_employees.length) allWarnings.push(`Colaboradores con evaluación no finalizada: ${D.meta.unfinished_employees.join(", ")}`);
+  if (D.meta.bad_values_found.length) allWarnings.push(`${D.meta.bad_values_found.length} respuesta(s) fuera de rango 0–4 fueron excluidas.`);
+  if (allWarnings.length) {
+    warnBox.classList.remove("hidden");
+    for (const w of allWarnings) {
+      const li = document.createElement("li");
+      li.textContent = w;
+      warnList.appendChild(li);
+    }
+  } else {
+    warnBox.classList.add("hidden");
+  }
+
+  const deptSorted = Object.entries(D.departamentos).sort((a, b) => b[1].resultado_promedio - a[1].resultado_promedio);
+  let html = `<table class="data-table"><thead><tr>
+    <th>Departamento</th><th>Colaboradores</th><th>Resultado promedio</th><th>Nivel predominante</th><th>% Alto+Muy alto</th>
+  </tr></thead><tbody>`;
+  for (const [dept, v] of deptSorted) {
+    html += `<tr>
+      <td>${dept}</td><td>${v.n_empleados}</td><td>${v.resultado_promedio.toFixed(1)}</td>
+      <td><span class="badge" style="background:${LEVEL_COLOR[v.nivel_predominante]}">${v.nivel_predominante}</span></td>
+      <td>${v.pct_alto_muyalto}%</td>
+    </tr>`;
+  }
+  html += "</tbody></table>";
+  deptTableWrap.innerHTML = html;
+}
+
+downloadPdfBtn.addEventListener("click", () => {
+  if (!state.pdfDocDefinition) return;
+  const empresa = (state.reportData.meta.empresa || "reporte").replace(/[^a-zA-Z0-9]+/g, "_");
+  pdfMake.createPdf(state.pdfDocDefinition).download(`Reporte_NOM035_GuiaII_${empresa}.pdf`);
+});
+
+downloadXlsxBtn.addEventListener("click", async () => {
+  if (!state.excelWorkbook) return;
+  const empresa = (state.reportData.meta.empresa || "reporte").replace(/[^a-zA-Z0-9]+/g, "_");
+  const buffer = await state.excelWorkbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Resumen_NOM035_GuiaII_${empresa}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+</script>
+</body>
+</html>

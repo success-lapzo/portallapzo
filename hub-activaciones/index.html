@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hub de Activaciones Lapzo</title>
+
+<!-- Reset base. Se conserva tal cual para que el render siga siendo pixel a
+     pixel el mismo de siempre. -->
+<style>
+  :root{color-scheme:light}
+  body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}
+  img{max-width:100%}
+  [hidden]:not([hidden=until-found]){display:none!important}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+
+<link rel="stylesheet" href="./src/css/styles.css">
+</head>
+<body>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M8.2 3.5v11.2c0 2.3 1.7 4.1 3.9 4.1 2.4 0 4.2-1.9 4.2-4.3 0-2.2-1.6-3.8-3.6-3.8-1.3 0-2.4.6-3.1 1.5" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="brand-txt">
+        <span class="brand-name">Hub de Activaciones</span>
+        <span class="brand-org">Lapzo</span>
+      </span>
+    </div>
+
+    <div class="navsec" id="navMain"></div>
+    <div class="navsec" id="navProd"></div>
+    <div class="navsec" id="navFoot"></div>
+
+    <!-- Portal Lapzo: regreso, usuario actual y cerrar sesión.
+         Lo pinta el propio Hub (archivo 03) con el usuario de la sesión. -->
+    <div id="portalBar"></div>
+
+    <div class="rail-foot">
+      <div class="sprintbox" id="sprintBox"></div>
+      <div id="railRol"></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="tbTitle">Hub de Activaciones</h1>
+        <div class="sub" id="tbSub">Preparando el tablero…</div>
+      </div>
+      <div class="topacts">
+        <span class="statusdot" id="tbStatus"><span class="d off"></span>Conectando</span>
+        <button class="iconbtn" id="temaBtn" type="button" title="Cambiar tema" aria-label="Cambiar tema"></button>
+      </div>
+    </header>
+    <div class="body" id="body"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     Capa compartida de Portal Lapzo: configuracion, cliente de
+     Supabase, sesion, permisos y guard. El Hub no define un
+     segundo cliente ni un segundo login: los consume.
+     ============================================================ -->
+<script src="../shared/js/config.js"></script>
+<script src="../shared/js/supabase.js"></script>
+<script src="../shared/js/auth.js"></script>
+<script src="../shared/js/permissions.js"></script>
+<script src="../shared/js/guard.js"></script>
+
+<!-- ============================================================
+     Scripts del Hub. El orden importa: originalmente todo esto
+     era UN solo <script>, por lo que los archivos comparten el
+     ambito global lexico y deben cargarse en secuencia (sin
+     defer, sin type="module").
+
+     El 00 es el runtime: unico punto que habla con Supabase.
+     ============================================================ -->
+<script src="./src/js/00-portal-runtime.js"></script>
+<script src="./src/js/01-catalogos.js"></script>
+<script src="./src/js/02-estado-persistencia.js"></script>
+<script src="./src/js/03-shell-navegacion.js"></script>
+<script src="./src/js/04-solicitudes-diagnostico.js"></script>
+<script src="./src/js/05-carga-roadmap-proceso.js"></script>
+<script src="./src/js/06-eventos-arranque.js"></script>
+
+</body>
+</html>

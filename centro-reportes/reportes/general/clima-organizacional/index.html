@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Clima Organizacional — Lapzo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;padding:2rem 1rem}
+.app{max-width:720px;margin:0 auto}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem}
+.logo{width:36px;height:36px;background:#6C4EE4;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo span{color:#fff;font-weight:600;font-size:14px}
+.title{font-size:20px;font-weight:600;color:#1a1a1a}
+.subtitle{font-size:13px;color:#666}
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.field-label{font-size:13px;color:#666;margin-bottom:6px;display:block}
+input[type=text]{width:100%;font-size:15px;padding:9px 12px;border:1px solid #ddd;border-radius:8px;outline:none;font-family:inherit}
+input[type=text]:focus{border-color:#6C4EE4;box-shadow:0 0 0 3px #6C4EE420}
+.upload-zone{border:2px dashed #ccc;border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:background 0.15s,border-color 0.15s;position:relative}
+.upload-zone:hover{background:#f9f7ff;border-color:#6C4EE4}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uz-icon{font-size:32px;color:#6C4EE4;margin-bottom:8px}
+.uz-text{font-size:14px;color:#444}
+.uz-hint{font-size:12px;color:#999;margin-top:4px}
+.preview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:1rem}
+.metric-card{background:#f5f3ff;border-radius:10px;padding:0.875rem;text-align:center}
+.metric-val{font-size:24px;font-weight:600;color:#6C4EE4}
+.metric-lbl{font-size:11px;color:#666;margin-top:2px}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:500}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.section-title{font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:0.75rem}
+.dim-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0}
+.dim-row:last-child{border-bottom:none}
+.dim-name{flex:1;font-size:13px;color:#1a1a1a}
+.dim-bar-wrap{width:130px;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden}
+.dim-bar{height:100%;border-radius:3px;background:#6C4EE4}
+.dim-score{font-size:13px;font-weight:600;color:#1a1a1a;min-width:36px;text-align:right}
+.btn-primary{background:#6C4EE4;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;width:100%;transition:opacity 0.15s;font-family:inherit}
+.btn-primary:hover{opacity:0.88}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed}
+.btn-secondary{background:#fff;color:#6C4EE4;border:1.5px solid #6C4EE4;border-radius:10px;padding:11px 24px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;transition:background 0.15s;font-family:inherit}
+.btn-secondary:hover{background:#f5f3ff}
+.progress-wrap{display:none;margin-top:0.75rem}
+.progress-bar{height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden;margin-bottom:6px}
+.progress-fill{height:100%;background:#6C4EE4;border-radius:2px;transition:width 0.3s;width:0}
+.progress-text{font-size:12px;color:#666}
+.file-chip{display:flex;align-items:center;gap:8px;background:#f5f3ff;border-radius:8px;padding:8px 12px;font-size:13px;color:#1a1a1a;margin-top:10px}
+.file-chip i{color:#6C4EE4}
+#report-container{display:none}
+.report-section{margin-bottom:2rem}
+.report-section h2{font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:1rem;padding-bottom:8px;border-bottom:3px solid #6C4EE4}
+.traffic-table{width:100%;border-collapse:collapse;font-size:13px}
+.traffic-table th{text-align:left;padding:9px 12px;background:#6C4EE4;color:#fff;font-weight:600}
+.traffic-table td{padding:9px 12px;border-bottom:1px solid #f0f0f0}
+.traffic-table tr:last-child td{border-bottom:none}
+.tl-verde td:first-child{border-left:4px solid #639922}
+.tl-amarillo td:first-child{border-left:4px solid #BA7517}
+.tl-rojo td:first-child{border-left:4px solid #E24B4A}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;flex-shrink:0}
+.dot-v{background:#639922}.dot-a{background:#BA7517}.dot-r{background:#E24B4A}
+.hallazgo-card{border-left:3px solid #6C4EE4;padding:10px 14px;margin-bottom:8px;background:#f9f9f9;border-radius:0 8px 8px 0}
+.hallazgo-card p{font-size:13px;color:#1a1a1a;line-height:1.55}
+.hallazgo-card .h-meta{font-size:11px;color:#888;margin-top:5px}
+.rec-card{border:1px solid #e5e5e5;border-radius:10px;padding:12px 16px;margin-bottom:8px;background:#fff}
+.rec-title{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:8px}
+.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.rec-item{font-size:12px;color:#888}
+.rec-item span{color:#444}
+.gauge-wrap{text-align:center;padding:1.25rem 0}
+.gauge-num{font-size:52px;font-weight:700;color:#6C4EE4}
+.gauge-den{font-size:24px;color:#999;font-weight:400}
+.gauge-label{font-size:14px;color:#666;margin-top:4px}
+.nivel-badge{display:inline-block;padding:6px 20px;border-radius:99px;font-size:14px;font-weight:600;margin-top:10px}
+.nivel-alto{background:#EAF3DE;color:#3B6D11}
+.nivel-medio{background:#FAEEDA;color:#854F0B}
+.nivel-bajo{background:#FCEBEB;color:#A32D2D}
+.cover-box{background:linear-gradient(135deg,#6C4EE4 0%,#9333EA 100%);border-radius:12px;padding:2.5rem 2rem;color:#fff;margin-bottom:1.5rem;text-align:center}
+.cover-box h1{font-size:28px;font-weight:700;margin-bottom:0.5rem}
+.cover-box p{font-size:15px;opacity:0.85}
+.cover-lapzo{font-size:12px;margin-top:1.5rem;opacity:0.7}
+.action-table{width:100%;border-collapse:collapse;font-size:12px}
+.action-table th{text-align:left;padding:8px 10px;background:#6C4EE4;color:#fff;font-weight:600;font-size:11px}
+.action-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+.action-table tr:nth-child(even) td{background:#fafafa}
+.error-msg{background:#FCEBEB;color:#A32D2D;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:8px;display:none}
+.btn-row{display:flex;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap}
+.btn-row .btn-primary,.btn-row .btn-secondary{width:auto;margin-top:0;padding:10px 20px}
+@media print{
+  body{background:#fff;padding:0}
+  .btn-row,.card:not(.report-content),.header-controls{display:none!important}
+  #step1,#step2,#preview-panel{display:none!important}
+  .cover-box{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .traffic-table th,.action-table th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .report-section{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+  <div class="logo"><span>L</span></div>
+  <div>
+    <div class="title">Generador de Clima Organizacional</div>
+    <div class="subtitle">Lapzo · Reporte ejecutivo automático</div>
+  </div>
+</div>
+
+<div class="card" id="step1">
+  <div class="section-title">1. Datos del informe</div>
+  <label class="field-label">Nombre del cliente / empresa</label>
+  <input type="text" id="client-name" placeholder="Ej. Pinion Education" value="">
+  <div style="margin-top:14px">
+    <label class="field-label">Fecha del informe</label>
+    <input type="text" id="report-date" placeholder="Ej. Junio 2026" value="" style="width:220px">
+  </div>
+</div>
+
+<div class="card" id="step2">
+  <div class="section-title">2. Archivo de datos</div>
+  <div class="upload-zone" id="upload-zone">
+    <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
+    <div class="uz-icon"><i class="ti ti-upload"></i></div>
+    <div class="uz-text">Arrastra tu Excel aquí o haz clic para seleccionar</div>
+    <div class="uz-hint">Formatos: .xlsx · .xls · .csv — La columna "Sección" se usa como dimensión</div>
+  </div>
+  <div id="file-chip" style="display:none"></div>
+  <div id="error-msg" class="error-msg"></div>
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-text" id="progress-text">Analizando datos...</div>
+  </div>
+</div>
+
+<div id="preview-panel" style="display:none">
+  <div class="card">
+    <div class="section-title" style="margin-bottom:10px">Vista previa de datos detectados</div>
+    <div class="preview-grid" id="preview-metrics"></div>
+    <div style="margin-top:1.25rem">
+      <div class="section-title">Resultado por dimensión</div>
+      <div id="preview-dims"></div>
+    </div>
+  </div>
+  <button class="btn-primary" id="btn-generate">Generar informe completo</button>
+</div>
+
+<div id="report-container">
+  <div class="btn-row">
+    <button class="btn-primary" id="btn-print"><i class="ti ti-printer"></i> Exportar / Imprimir PDF</button>
+    <button class="btn-secondary" id="btn-reset"><i class="ti ti-refresh"></i> Nuevo análisis</button>
+  </div>
+  <div id="report-body"></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+async function setProgress(pct,txt){
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-text').textContent=txt;
+  await sleep(60);
+}
+
+function showError(msg){
+  const el=document.getElementById('error-msg');
+  el.textContent=msg;
+  el.style.display='block';
+}
+
+function getTrafficLight(score){
+  if(score>=4.0) return {label:'Verde — favorable',cls:'badge-green',tcls:'tl-verde',dot:'dot-v'};
+  if(score>=3.5) return {label:'Amarillo — oportunidad',cls:'badge-amber',tcls:'tl-amarillo',dot:'dot-a'};
+  return {label:'Rojo — crítico',cls:'badge-red',tcls:'tl-rojo',dot:'dot-r'};
+}
+
+function getNivel(score){
+  if(score>=4.2) return {label:'Alto',cls:'nivel-alto'};
+  if(score>=3.5) return {label:'Medio',cls:'nivel-medio'};
+  return {label:'Bajo',cls:'nivel-bajo'};
+}
+
+function detectColumns(headers){
+  const h=headers.map(x=>x?String(x).toLowerCase().trim():'');
+  const find=(terms)=>{
+    for(const t of terms){const i=h.findIndex(x=>x.includes(t));if(i>=0)return i;}
+    return -1;
+  };
+  return{
+    dim:find(['sección','seccion','dimensión','dimension','categoria','categoría']),
+    q:find(['pregunta','question']),
+    scale:find(['respuesta de escala','escala','score','puntaje','respuesta de e']),
+    ou:find(['ou','área','area','departamento','department','unidad']),
+    comment:find(['comentarios abiertos','comentario','comment','observación'])
+  };
+}
+
+function analyzeData(rows,cols){
+  const dimMap={},ouMap={},qMap={},comments=[];
+  for(const row of rows){
+    const dim=cols.dim>=0?row[cols.dim]:null;
+    const q=cols.q>=0?row[cols.q]:null;
+    const scale=cols.scale>=0?parseFloat(row[cols.scale]):NaN;
+    const ou=cols.ou>=0?row[cols.ou]:null;
+    const comment=cols.comment>=0?row[cols.comment]:null;
+    if(!isNaN(scale)&&scale>0){
+      if(dim){if(!dimMap[dim])dimMap[dim]=[];dimMap[dim].push(scale);}
+      if(ou){if(!ouMap[ou])ouMap[ou]=[];ouMap[ou].push(scale);}
+      if(q){if(!qMap[q])qMap[q]=[];qMap[q].push(scale);}
+    }
+    if(comment&&String(comment).trim().length>20&&!String(comment).toLowerCase().includes('sin comentario')){
+      comments.push(String(comment).trim());
+    }
+  }
+  const avg=(arr)=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
+  const dims=Object.entries(dimMap).map(([k,v])=>({name:k,score:avg(v),n:v.length})).sort((a,b)=>b.score-a.score);
+  const ous=Object.entries(ouMap).map(([k,v])=>({name:k,score:avg(v),n:v.length})).sort((a,b)=>b.score-a.score);
+  const questions=Object.entries(qMap).map(([k,v])=>({q:k,score:avg(v),n:v.length})).sort((a,b)=>b.score-a.score);
+  const allScales=Object.values(dimMap).flat();
+  const overall=avg(allScales);
+  const maxScale=Math.max(...allScales);
+  const scaleMax=maxScale<=5?5:10;
+  return{dims,ous,questions,comments,overall,scaleMax,totalResponses:allScales.length};
+}
+
+function categorizeComments(comments){
+  const themes={
+    'Liderazgo':['jefe','líder','lider','directivo','director','supervisor','gerente'],
+    'Comunicación':['comunicación','comunicacion','información','informacion','reunión','reunion','sprint'],
+    'Reconocimiento':['reconocimiento','valorad','reconocer','mérito','logro','agradec'],
+    'Desarrollo':['crecimiento','desarrollo','aprendizaje','capacitación','carrera','profesional'],
+    'Carga de trabajo':['carga','trabajo','workload','tiempo','plazo','horas','exceso'],
+    'Bienestar':['bienestar','balance','equilibrio','salud','estrés','estres','personal'],
+    'Procesos':['proceso','procedimiento','estructura','inducción','induccion','organizaci'],
+    'Trabajo en equipo':['equipo','colaboración','colaboracion','juntos','compañero']
+  };
+  const counts={},examples={};
+  for(const c of comments){
+    const cl=c.toLowerCase();
+    for(const [theme,kws] of Object.entries(themes)){
+      if(kws.some(k=>cl.includes(k))){
+        counts[theme]=(counts[theme]||0)+1;
+        if(!examples[theme])examples[theme]=c.substring(0,180)+'...';
+      }
+    }
+  }
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([t,n])=>({theme:t,count:n,example:examples[t]||''}));
+}
+
+function generateFindings(data,clientName){
+  const{dims,ous,overall,questions}=data;
+  const nivel=getNivel(overall);
+  const top=dims[0],bot=dims[dims.length-1];
+  const topQ=questions[0],botQ=questions[questions.length-1];
+  const topOU=ous[0],botOU=ous[ous.length-1];
+  const findings=[
+    {txt:`El clima general de ${clientName} se ubica en ${overall.toFixed(2)}/5, nivel ${nivel.label.toLowerCase()}. Esto refleja una percepción positiva del entorno laboral con áreas específicas que requieren atención.`,priority:'Informativo',relevance:'Lectura general del estado organizacional'},
+    {txt:`"${top.name}" es la dimensión más valorada con un promedio de ${top.score.toFixed(2)}/5. Representa una fortaleza cultural a preservar y comunicar internamente.`,priority:'Fortaleza',relevance:'Palanca de retención y engagement'},
+    {txt:`"${bot.name}" es la dimensión con menor resultado (${bot.score.toFixed(2)}/5). Requiere atención prioritaria por su impacto en la experiencia diaria de los colaboradores.`,priority:'Alta',relevance:'Área crítica de mejora'}
+  ];
+  if(topQ)findings.push({txt:`La pregunta mejor evaluada fue: "${topQ.q.substring(0,90)}..." con ${topQ.score.toFixed(2)}/5. Indica un elemento de alta satisfacción.`,priority:'Fortaleza',relevance:'Elemento de mayor satisfacción'});
+  if(botQ)findings.push({txt:`La pregunta peor evaluada fue: "${botQ.q.substring(0,90)}..." con ${botQ.score.toFixed(2)}/5. Es una señal de alerta operativa.`,priority:'Crítica',relevance:'Foco de intervención inmediata'});
+  if(ous.length>1)findings.push({txt:`"${topOU.name}" destaca como la unidad con mejor clima (${topOU.score.toFixed(2)}/5), mientras que "${botOU.name}" presenta el resultado más bajo (${botOU.score.toFixed(2)}/5). La brecha entre ambas es de ${(topOU.score-botOU.score).toFixed(2)} puntos.`,priority:'Media',relevance:'Desigualdad interna a atender'});
+  if(dims.filter(d=>d.score<3.5).length>0)findings.push({txt:`Existen ${dims.filter(d=>d.score<3.5).length} dimensión(es) por debajo de 3.5/5, lo que representa una señal de riesgo para el nivel de satisfacción general.`,priority:'Alta',relevance:'Riesgo de deterioro del clima'});
+  if(data.comments.length>0)findings.push({txt:`Se recopilaron ${data.comments.length} comentarios abiertos. Las tendencias identificadas aportan contexto cualitativo importante para interpretar los resultados cuantitativos.`,priority:'Media',relevance:'Contexto cualitativo valioso'});
+  return findings.slice(0,8);
+}
+
+function generateRecommendations(data){
+  const{dims,ous}=data;
+  const recs=[];
+  for(const d of dims){
+    if(d.score<3.5)recs.push({rec:`Diseñar un plan de mejora específico para "${d.name}"`,problem:`Resultado de ${d.score.toFixed(2)}/5 — por debajo del umbral aceptable`,responsible:'Recursos Humanos + líderes de área',priority:'Alta',plazo:'1-2 meses'});
+    else if(d.score<4.0)recs.push({rec:`Implementar iniciativas focalizadas para fortalecer "${d.name}"`,problem:`Resultado de ${d.score.toFixed(2)}/5 — oportunidad de mejora clara`,responsible:'Recursos Humanos',priority:'Media',plazo:'2-3 meses'});
+  }
+  if(ous.length>1){
+    const bot=ous[ous.length-1];
+    if(bot.score<3.8)recs.push({rec:`Implementar acompañamiento directo en "${bot.name}"`,problem:`Es la unidad con menor clima (${bot.score.toFixed(2)}/5)`,responsible:'Director de área + HR Business Partner',priority:'Alta',plazo:'Inmediato'});
+  }
+  recs.push({rec:'Comunicar los resultados del estudio a todos los colaboradores',problem:'La transparencia genera confianza y muestra compromiso de mejora',responsible:'Dirección General + RH',priority:'Alta',plazo:'2 semanas'});
+  recs.push({rec:'Dar seguimiento trimestral al plan de acción derivado de este estudio',problem:'Sin seguimiento, los esfuerzos de mejora pierden tracción',responsible:'RH + líderes de área',priority:'Media',plazo:'Trimestral'});
+  recs.push({rec:'Reconocer y comunicar las fortalezas detectadas como parte de la cultura',problem:'Reforzar lo que funciona bien evita erosionar las fortalezas actuales',responsible:'Comunicación interna + líderes',priority:'Media',plazo:'1 mes'});
+  return recs.slice(0,7);
+}
+
+function buildReport(clientName,date,data){
+  const{dims,ous,overall,scaleMax,questions,comments,totalResponses}=data;
+  const nivel=getNivel(overall);
+  const findings=generateFindings(data,clientName);
+  const recs=generateRecommendations(data);
+  const commentThemes=categorizeComments(comments);
+  const pct=(v)=>((v/scaleMax)*100).toFixed(1);
+  let html='';
+
+  html+=`<div class="cover-box">
+    <div style="font-size:13px;opacity:0.75;margin-bottom:0.5rem;letter-spacing:0.05em">INFORME DE CLIMA ORGANIZACIONAL</div>
+    <h1>${clientName}</h1>
+    <p>Resultados · ${date}</p>
+    <div class="cover-lapzo">Preparado por Lapzo · Talento como servicio</div>
+  </div>`;
+
+  html+=`<div class="report-section">
+    <h2>Resumen ejecutivo</h2>
+    <div class="gauge-wrap">
+      <div class="gauge-num">${overall.toFixed(2)}<span class="gauge-den">/${scaleMax}</span></div>
+      <div class="gauge-label">Promedio general de clima</div>
+      <div><span class="nivel-badge ${nivel.cls}">Nivel ${nivel.label}</span></div>
+    </div>
+    <div class="preview-grid" style="margin-top:1rem">
+      <div class="metric-card"><div class="metric-val">${totalResponses.toLocaleString()}</div><div class="metric-lbl">Respuestas totales</div></div>
+      <div class="metric-card"><div class="metric-val">${dims.length}</div><div class="metric-lbl">Dimensiones</div></div>
+      <div class="metric-card"><div class="metric-val">${ous.length}</div><div class="metric-lbl">Unidades / Áreas</div></div>
+      <div class="metric-card"><div class="metric-val">${comments.length}</div><div class="metric-lbl">Comentarios abiertos</div></div>
+    </div>
+    <div style="margin-top:1.25rem;background:#f9f7ff;border-radius:10px;padding:1rem">
+      <p style="font-size:13px;color:#444;line-height:1.7">
+        ${clientName} presenta un resultado de clima de <strong>${overall.toFixed(2)}/${scaleMax}</strong> — nivel <strong>${nivel.label.toLowerCase()}</strong>.
+        Las dimensiones de mayor fortaleza son <em>${dims.slice(0,2).map(d=>d.name).join(' y ')}</em>,
+        mientras que <em>${dims.slice(-2).map(d=>d.name).join(' y ')}</em> representan las principales oportunidades de mejora.
+        ${ous.length>1?`La unidad con mejor resultado es <em>${ous[0].name}</em> y la que requiere mayor atención es <em>${ous[ous.length-1].name}</em>.`:''}
+      </p>
+    </div>
+  </div>`;
+
+  html+=`<div class="report-section">
+    <h2>Metodología</h2>
+    <p style="font-size:13px;color:#555;line-height:1.7">
+      Se analizaron <strong>${totalResponses.toLocaleString()} respuestas</strong> provenientes de ${ous.length} unidades organizacionales,
+      distribuidas en <strong>${dims.length} dimensiones</strong>. La escala de medición utilizada es de 1 a ${scaleMax},
+      donde 1 representa el nivel más bajo de satisfacción y ${scaleMax} el más alto.<br><br>
+      Los resultados se interpretan bajo los siguientes rangos:
+      <span class="dot dot-v" style="display:inline-block"></span><strong>Verde (≥ 4.0):</strong> favorable ·
+      <span class="dot dot-a" style="display:inline-block"></span><strong>Amarillo (3.5–3.9):</strong> oportunidad de mejora ·
+      <span class="dot dot-r" style="display:inline-block"></span><strong>Rojo (&lt;3.5):</strong> crítico.<br><br>
+      Los comentarios abiertos fueron agrupados por temas frecuentes para identificar patrones cualitativos.
+      No se copian comentarios individuales. Se preservó el anonimato en todo el análisis.
+    </p>
+  </div>`;
+
+  html+=`<div class="report-section"><h2>Resultados por dimensión</h2>`;
+  for(const d of dims){
+    const tl=getTrafficLight(d.score);
+    const barColor=d.score>=4?'#639922':d.score>=3.5?'#BA7517':'#E24B4A';
+    html+=`<div class="dim-row">
+      <span class="dot ${tl.dot}"></span>
+      <span class="dim-name" style="font-weight:600">${d.name}</span>
+      <div class="dim-bar-wrap"><div class="dim-bar" style="width:${pct(d.score)}%;background:${barColor}"></div></div>
+      <span class="dim-score">${d.score.toFixed(2)}</span>
+      <span class="status-badge ${tl.cls}" style="font-size:11px">${tl.label.split('—')[0].trim()}</span>
+    </div>`;
+  }
+  html+=`</div>`;
+
+  if(ous.length>1){
+    html+=`<div class="report-section"><h2>Resultados por área / unidad organizacional</h2>
+    <table class="traffic-table">
+      <thead><tr><th>Unidad</th><th>Promedio</th><th>Respuestas</th><th>Semáforo</th></tr></thead>
+      <tbody>`;
+    for(const o of ous){
+      const tl=getTrafficLight(o.score);
+      html+=`<tr class="${tl.tcls}">
+        <td>${o.name}</td>
+        <td><strong>${o.score.toFixed(2)}</strong></td>
+        <td>${o.n}</td>
+        <td><span class="status-badge ${tl.cls}">${tl.label}</span></td>
+      </tr>`;
+    }
+    html+=`</tbody></table></div>`;
+  }
+
+  if(questions.length>0){
+    html+=`<div class="report-section"><h2>Preguntas destacadas</h2>
+    <div style="margin-bottom:0.75rem">
+      <div style="font-size:13px;font-weight:600;color:#639922;margin-bottom:6px">⬆ Mayor satisfacción</div>`;
+    for(const q of questions.slice(0,3)){
+      html+=`<div class="hallazgo-card" style="border-left-color:#639922">
+        <p>${q.q}</p>
+        <div class="h-meta">Promedio: ${q.score.toFixed(2)} · ${q.n} respuestas</div>
+      </div>`;
+    }
+    html+=`</div><div>
+      <div style="font-size:13px;font-weight:600;color:#E24B4A;margin-bottom:6px">⬇ Menor satisfacción</div>`;
+    for(const q of questions.slice(-3).reverse()){
+      html+=`<div class="hallazgo-card" style="border-left-color:#E24B4A">
+        <p>${q.q}</p>
+        <div class="h-meta">Promedio: ${q.score.toFixed(2)} · ${q.n} respuestas</div>
+      </div>`;
+    }
+    html+=`</div></div>`;
+  }
+
+  if(commentThemes.length>0){
+    html+=`<div class="report-section"><h2>Análisis de comentarios abiertos</h2>
+    <p style="font-size:13px;color:#555;margin-bottom:1rem">Se analizaron ${comments.length} comentarios. Los temas más frecuentes fueron:</p>
+    <table class="traffic-table"><thead><tr><th>Tema</th><th>Frecuencia</th><th>Tendencia detectada</th></tr></thead><tbody>`;
+    for(const t of commentThemes.slice(0,6)){
+      html+=`<tr><td><strong>${t.theme}</strong></td><td>${t.count} menciones</td>
+      <td style="font-size:12px;color:#666">${t.example.substring(0,120)}${t.example.length>120?'...':''}</td></tr>`;
+    }
+    html+=`</tbody></table></div>`;
+  }
+
+  const priorityColors={'Crítica':'#E24B4A','Alta':'#BA7517','Media':'#6C4EE4','Fortaleza':'#639922','Informativo':'#1D9E75'};
+  html+=`<div class="report-section"><h2>Hallazgos clave</h2>`;
+  for(const f of findings){
+    const col=priorityColors[f.priority]||'#6C4EE4';
+    html+=`<div class="hallazgo-card" style="border-left-color:${col}">
+      <p>${f.txt}</p>
+      <div class="h-meta">
+        <span class="status-badge" style="background:${col}20;color:${col};font-size:10px">${f.priority}</span>
+        <span style="margin-left:8px">${f.relevance}</span>
+      </div>
+    </div>`;
+  }
+  html+=`</div>`;
+
+  const prioColors2={Alta:'badge-red',Media:'badge-amber',Inmediato:'badge-red'};
+  html+=`<div class="report-section"><h2>Recomendaciones</h2>`;
+  for(const r of recs){
+    html+=`<div class="rec-card">
+      <div class="rec-title">${r.rec}</div>
+      <div class="rec-grid">
+        <div class="rec-item">Problema: <span>${r.problem}</span></div>
+        <div class="rec-item">Responsable: <span>${r.responsible}</span></div>
+        <div class="rec-item">Prioridad: <span><span class="status-badge ${prioColors2[r.priority]||'badge-amber'}">${r.priority}</span></span></div>
+        <div class="rec-item">Plazo: <span>${r.plazo}</span></div>
+      </div>
+    </div>`;
+  }
+  html+=`</div>`;
+
+  html+=`<div class="report-section"><h2>Plan de acción sugerido</h2>
+  <table class="action-table"><thead>
+    <tr><th>#</th><th>Acción</th><th>Responsable</th><th>Plazo</th><th>Indicador</th><th>Resultado esperado</th></tr>
+  </thead><tbody>`;
+  const actions=recs.map((r,i)=>({n:i+1,action:r.rec,resp:r.responsible,plazo:r.plazo,indicator:'Medición de seguimiento trimestral',expected:'Mejora en dimensiones identificadas'}));
+  actions.push({n:recs.length+1,action:'Aplicar nueva medición de clima en 6-12 meses',resp:'RH',plazo:'6-12 meses',indicator:'% de variación vs resultado actual',expected:'Verificar impacto de las intervenciones'});
+  for(const a of actions.slice(0,8)){
+    html+=`<tr><td style="font-weight:700;color:#6C4EE4">${a.n}</td>
+      <td>${a.action}</td><td>${a.resp}</td><td>${a.plazo}</td>
+      <td style="font-size:11px">${a.indicator}</td>
+      <td style="font-size:11px">${a.expected}</td></tr>`;
+  }
+  html+=`</tbody></table></div>`;
+
+  const nivelDesc=nivel.label==='Alto'?'un estado organizacional positivo que refleja confianza, compromiso y satisfacción generalizada':nivel.label==='Medio'?'un estado organizacional con bases sólidas que requiere atención en áreas específicas para elevar la experiencia de los colaboradores':'un estado organizacional con señales de alerta que demanda intervención inmediata en múltiples frentes';
+
+  html+=`<div class="report-section"><h2>Conclusión</h2>
+    <p style="font-size:14px;color:#444;line-height:1.75">
+      ${clientName} presenta ${nivelDesc} (promedio general: ${overall.toFixed(2)}/${scaleMax}).
+      Las dimensiones de <em>${dims.slice(0,2).map(d=>d.name).join(' y ')}</em> son las bases del clima actual y deben preservarse activamente.
+      La atención prioritaria debe enfocarse en <em>${dims.slice(-2).map(d=>d.name).join(' y ')}</em>, donde se identifican
+      las mayores oportunidades de mejora.<br><br>
+      El paso inmediato recomendado es <strong>comunicar los resultados a los colaboradores</strong> y poner en marcha el plan de acción descrito en este informe.
+      Una nueva medición en 6 a 12 meses permitirá verificar el impacto de las intervenciones y ajustar la estrategia según los avances.
+    </p>
+    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid #eee;font-size:12px;color:#aaa">
+      Informe generado por Lapzo · ${date} · Datos procesados en el navegador, sin almacenamiento externo.
+    </div>
+  </div>`;
+
+  return html;
+}
+
+function parseExcelData(ab){
+  const wb=XLSX.read(ab,{type:'array'});
+  let rows=null,headers=null;
+  for(const name of wb.SheetNames){
+    const ws=wb.Sheets[name];
+    const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+    if(!data||data.length<2)continue;
+    for(let i=0;i<Math.min(5,data.length);i++){
+      const row=data[i];
+      if(!row)continue;
+      const nonNull=row.filter(x=>x!==null&&x!==undefined&&String(x).trim()!=='');
+      if(nonNull.length>=4){headers=row;rows=data.slice(i+1).filter(r=>r&&r.some(x=>x!==null));break;}
+    }
+    if(headers)break;
+  }
+  return{headers,rows};
+}
+
+document.getElementById('file-input').addEventListener('change',async function(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  document.getElementById('error-msg').style.display='none';
+  const pw=document.getElementById('progress-wrap');
+  pw.style.display='block';
+  const chip=document.getElementById('file-chip');
+  chip.innerHTML=`<i class="ti ti-file-spreadsheet"></i> ${file.name}`;
+  chip.style.display='flex';
+  await setProgress(20,'Leyendo archivo...');
+  const ab=await file.arrayBuffer();
+  await setProgress(50,'Detectando columnas...');
+  try{
+    const{headers,rows}=parseExcelData(ab);
+    if(!headers||!rows){showError('No se encontraron datos válidos. Verifica que el archivo tenga cabeceras y datos numéricos.');pw.style.display='none';return;}
+    await setProgress(75,'Calculando resultados...');
+    const cols=detectColumns(headers);
+    if(cols.scale<0){showError('No se encontró columna de puntaje numérico. Debe existir una columna "Respuesta de escala", "Puntaje" o similar.');pw.style.display='none';return;}
+    const analysis=analyzeData(rows,cols);
+    if(analysis.totalResponses<10){showError('Se encontraron muy pocas respuestas. Verifica que la columna de puntaje tenga valores del 1 al 5.');pw.style.display='none';return;}
+    await setProgress(100,'¡Datos detectados!');
+    window._analysisData=analysis;
+    document.getElementById('preview-metrics').innerHTML=`
+      <div class="metric-card"><div class="metric-val">${analysis.overall.toFixed(2)}</div><div class="metric-lbl">Promedio general</div></div>
+      <div class="metric-card"><div class="metric-val">${analysis.totalResponses.toLocaleString()}</div><div class="metric-lbl">Respuestas</div></div>
+      <div class="metric-card"><div class="metric-val">${analysis.dims.length}</div><div class="metric-lbl">Dimensiones</div></div>
+      <div class="metric-card"><div class="metric-val">${analysis.ous.length}</div><div class="metric-lbl">Áreas</div></div>`;
+    document.getElementById('preview-dims').innerHTML=analysis.dims.map(d=>{
+      const tl=getTrafficLight(d.score);
+      return `<div class="dim-row">
+        <span class="dot ${tl.dot}"></span>
+        <span class="dim-name">${d.name}</span>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:${((d.score/analysis.scaleMax)*100).toFixed(1)}%"></div></div>
+        <span class="dim-score">${d.score.toFixed(2)}</span>
+      </div>`;
+    }).join('');
+    document.getElementById('preview-panel').style.display='block';
+    setTimeout(()=>{pw.style.display='none';},500);
+  }catch(err){showError('Error al procesar el archivo: '+err.message);pw.style.display='none';}
+});
+
+document.getElementById('btn-generate').addEventListener('click',function(){
+  const clientName=document.getElementById('client-name').value.trim()||'Cliente';
+  const date=document.getElementById('report-date').value.trim()||new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long'});
+  const data=window._analysisData;
+  if(!data){alert('Primero carga un archivo Excel.');return;}
+  document.getElementById('report-body').innerHTML=buildReport(clientName,date,data);
+  document.getElementById('report-container').style.display='block';
+  document.getElementById('preview-panel').style.display='none';
+  document.getElementById('step1').style.display='none';
+  document.getElementById('step2').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+document.getElementById('btn-print').addEventListener('click',function(){window.print();});
+
+document.getElementById('btn-reset').addEventListener('click',function(){
+  window._analysisData=null;
+  document.getElementById('report-container').style.display='none';
+  document.getElementById('preview-panel').style.display='none';
+  document.getElementById('step1').style.display='block';
+  document.getElementById('step2').style.display='block';
+  document.getElementById('file-chip').style.display='none';
+  document.getElementById('file-input').value='';
+  document.getElementById('error-msg').style.display='none';
+  document.getElementById('report-body').innerHTML='';
+});
+</script>
+</body>
+</html>

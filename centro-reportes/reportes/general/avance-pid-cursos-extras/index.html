@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Reporte de Avance PID</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --primary:#3B0A6B;
+  --primary-light:#7C2FC9;
+  --accent:#F5A623;
+  --ink:#1F2430;
+  --muted:#6B7280;
+  --bg-soft:#F6F5FA;
+  --border:#E5E2ED;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;background:#EDEAF3;color:var(--ink);}
+h1,h2,h3,h4{margin:0;font-weight:700;}
+p{margin:0;}
+
+/* ---------- SETUP SCREEN ---------- */
+#setupScreen{max-width:760px;margin:40px auto;background:#fff;border-radius:16px;padding:40px 44px;box-shadow:0 8px 30px rgba(59,10,107,.08);}
+#setupScreen h1{font-size:26px;color:var(--primary);margin-bottom:6px;}
+#setupScreen .subtitle{color:var(--muted);font-size:14px;margin-bottom:28px;}
+.field{margin-bottom:20px;}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;}
+.field small{display:block;color:var(--muted);font-size:12px;margin-top:4px;}
+.field input[type=text], .field input[type=date]{
+  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none;transition:.15s;
+}
+.field input[type=text]:focus, .field input[type=date]:focus{border-color:var(--primary-light);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.color-row{display:flex;align-items:center;gap:12px;}
+.color-row input[type=color]{width:52px;height:44px;border:1.5px solid var(--border);border-radius:8px;padding:2px;cursor:pointer;background:none;}
+.color-row input[type=text]{flex:1;}
+.upload-box{
+  border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:.15s;background:var(--bg-soft);
+}
+.upload-box:hover{border-color:var(--primary-light);}
+.upload-box.filled{border-color:var(--primary-light);background:#F3ECFA;}
+.upload-box input{display:none;}
+.upload-box .icon{font-size:26px;margin-bottom:6px;}
+.upload-box .txt{font-size:13px;color:var(--muted);}
+.upload-box .txt b{color:var(--ink);}
+#logoPreview{max-height:60px;max-width:180px;margin-bottom:8px;display:none;padding:14px 22px;border-radius:8px;background:#2A2A33;}
+.error-msg{color:#D0021B;font-size:12.5px;margin-top:6px;display:none;}
+.btn{
+  display:inline-block;background:var(--primary);color:#fff;border:none;padding:14px 26px;border-radius:9px;
+  font-size:15px;font-weight:600;cursor:pointer;transition:.15s;
+}
+.btn:hover{filter:brightness(1.08);}
+.btn:disabled{background:#C7C2D6;cursor:not-allowed;}
+.btn-secondary{background:#fff;color:var(--primary);border:1.5px solid var(--primary);}
+.btn-row{display:flex;gap:12px;margin-top:30px;align-items:center;}
+#validationSummary{background:var(--bg-soft);border-radius:10px;padding:16px 18px;margin-top:8px;font-size:13px;color:var(--ink);display:none;}
+#validationSummary.show{display:block;}
+#validationSummary .vline{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);}
+#validationSummary .vline:last-child{border-bottom:none;}
+#missingCols{color:#D0021B;font-size:13px;margin-top:10px;}
+
+/* ---------- TOOLBAR ---------- */
+#toolbar{
+  position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;padding:12px 26px;box-shadow:0 2px 10px rgba(0,0,0,.04);
+}
+#toolbar .brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--primary);font-size:15px;}
+#toolbar .brand .tb-logo-chip{background:var(--primary);border-radius:6px;padding:5px 10px;line-height:0;display:inline-flex;align-items:center;}
+#toolbar .brand img{height:20px;}
+#toolbar .actions{display:flex;gap:10px;}
+#pdfProgress{font-size:13px;color:var(--muted);display:none;align-items:center;gap:8px;}
+.spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ---------- REPORT PAGES ---------- */
+#reportContainer{padding:30px 0 60px;}
+.page{
+  width:794px;min-height:1123px;background:#fff;margin:0 auto 26px;box-shadow:0 6px 24px rgba(0,0,0,.10);
+  padding:52px 56px;position:relative;overflow:hidden;
+}
+.page-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--primary);padding-bottom:14px;margin-bottom:26px;}
+.page-header img{height:32px;}
+.page-header .ph-logo-chip{background:var(--primary);border-radius:6px;padding:6px 12px;line-height:0;display:inline-flex;align-items:center;}
+.page-header .ph-logo-chip img{height:22px;}
+.page-header .ph-title{font-size:13px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;}
+.page-footer{position:absolute;bottom:26px;left:56px;right:56px;display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px;}
+
+/* COVER */
+.cover-page{padding:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;background:var(--primary);}
+.cover-page .cover-bg-shape{position:absolute;top:0;right:0;width:340px;height:340px;background:#fff;opacity:.06;border-radius:0 0 0 100%;}
+.cover-page .cover-bg-shape2{position:absolute;bottom:0;left:0;width:220px;height:220px;background:var(--accent);opacity:.14;border-radius:0 100% 0 0;}
+.cover-page img.cover-logo{max-height:70px;max-width:260px;margin-bottom:34px;position:relative;z-index:2;}
+.cover-page .cover-client{font-size:16px;letter-spacing:1px;text-transform:uppercase;color:#fff;font-weight:700;margin-bottom:16px;position:relative;z-index:2;opacity:.92;}
+.cover-page .cover-title{font-size:38px;font-weight:800;color:#fff;margin-bottom:14px;line-height:1.15;position:relative;z-index:2;max-width:560px;}
+.cover-page .cover-subtitle{font-size:15px;color:rgba(255,255,255,.82);max-width:480px;line-height:1.5;margin-bottom:30px;position:relative;z-index:2;}
+.cover-page .cover-date{font-size:13px;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);padding:9px 22px;border-radius:20px;font-weight:600;position:relative;z-index:2;}
+.cover-page .cover-bar{width:90px;height:5px;background:var(--accent);border-radius:3px;margin:26px 0;position:relative;z-index:2;}
+
+/* SECTION TITLES */
+.sec-title{font-size:22px;font-weight:800;color:var(--primary);margin-bottom:4px;}
+.sec-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.kpi-card{background:var(--bg-soft);border-radius:12px;padding:16px 14px;border-top:4px solid var(--primary);}
+.kpi-card .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:8px;}
+.kpi-card .kpi-value{font-size:24px;font-weight:800;color:var(--ink);}
+.kpi-card .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* VALIDATION LIST */
+.val-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.val-item{background:var(--bg-soft);border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;}
+.val-item .vl{font-size:13px;color:var(--ink);}
+.val-item .vv{font-size:17px;font-weight:800;color:var(--primary);}
+
+/* MAIN GAUGE SECTION */
+.gauge-row{display:flex;align-items:center;gap:36px;margin-bottom:26px;}
+.gauge-wrap{width:220px;height:220px;position:relative;flex-shrink:0;}
+.gauge-center{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.gauge-center .gc-pct{font-size:36px;font-weight:800;color:var(--primary);}
+.gauge-center .gc-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+.gauge-desc{flex:1;}
+.gauge-desc h3{font-size:16px;color:var(--ink);margin-bottom:8px;}
+.gauge-desc p{font-size:13px;color:var(--muted);line-height:1.6;}
+
+.charts-row{display:flex;gap:24px;align-items:center;margin-bottom:20px;}
+.chart-box{width:210px;height:210px;position:relative;flex-shrink:0;}
+.chart-center{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+.chart-center .cc-pct{font-size:28px;font-weight:800;}
+.chart-center .cc-label{font-size:10px;color:var(--muted);text-transform:uppercase;}
+
+.stats-mini{display:flex;flex-direction:column;gap:10px;flex:1;}
+.stat-line{display:flex;justify-content:space-between;align-items:center;background:var(--bg-soft);border-radius:8px;padding:10px 14px;}
+.stat-line .sl-label{font-size:13px;color:var(--ink);}
+.stat-line .sl-value{font-size:16px;font-weight:800;}
+
+.analysis-box{background:var(--bg-soft);border-left:4px solid var(--primary);border-radius:0 10px 10px 0;padding:16px 20px;font-size:13px;line-height:1.7;color:var(--ink);margin-top:10px;}
+.analysis-box .ab-tag{font-size:10.5px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block;}
+
+/* TABLE */
+table.report-table{width:100%;max-width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed;}
+table.report-table thead th{
+  background:var(--primary);color:#fff;font-size:8.5px;text-transform:uppercase;letter-spacing:.2px;padding:8px 6px;text-align:left;font-weight:700;overflow-wrap:break-word;
+}
+table.report-table tbody td{padding:6px 6px;border-bottom:1px solid var(--border);color:var(--ink);overflow-wrap:break-word;word-break:break-word;}
+table.report-table tbody tr:nth-child(even){background:#FAFAFC;}
+table.report-table.colab-table th:nth-child(1),table.report-table.colab-table td:nth-child(1){width:14%;}
+table.report-table.colab-table th:nth-child(2),table.report-table.colab-table td:nth-child(2){width:19%;}
+table.report-table.colab-table th:nth-child(3),table.report-table.colab-table td:nth-child(3){width:12%;}
+table.report-table.colab-table th:nth-child(4),table.report-table.colab-table td:nth-child(4){width:10%;}
+table.report-table.colab-table th:nth-child(5),table.report-table.colab-table td:nth-child(5){width:8%;}
+table.report-table.colab-table th:nth-child(6),table.report-table.colab-table td:nth-child(6){width:10%;}
+table.report-table.colab-table th:nth-child(7),table.report-table.colab-table td:nth-child(7){width:8%;}
+table.report-table.colab-table th:nth-child(8),table.report-table.colab-table td:nth-child(8){width:8%;}
+table.report-table.colab-table th:nth-child(9),table.report-table.colab-table td:nth-child(9){width:11%;}
+/* Variante con desglose de cursos PID / adicionales (9 columnas, distinto significado) */
+table.report-table.colab-table.split th:nth-child(1),table.report-table.colab-table.split td:nth-child(1){width:16%;}
+table.report-table.colab-table.split th:nth-child(2),table.report-table.colab-table.split td:nth-child(2){width:15%;}
+table.report-table.colab-table.split th:nth-child(3),table.report-table.colab-table.split td:nth-child(3){width:10%;}
+table.report-table.colab-table.split th:nth-child(4),table.report-table.colab-table.split td:nth-child(4){width:12%;}
+table.report-table.colab-table.split th:nth-child(5),table.report-table.colab-table.split td:nth-child(5){width:12%;}
+table.report-table.colab-table.split th:nth-child(6),table.report-table.colab-table.split td:nth-child(6){width:12%;}
+table.report-table.colab-table.split th:nth-child(7),table.report-table.colab-table.split td:nth-child(7){width:8%;}
+table.report-table.colab-table.split th:nth-child(8),table.report-table.colab-table.split td:nth-child(8){width:8%;}
+table.report-table.colab-table.split th:nth-child(9),table.report-table.colab-table.split td:nth-child(9){width:7%;}
+.badge{display:inline-block;padding:2px 6px;border-radius:10px;font-size:8.5px;font-weight:700;color:#fff;white-space:nowrap;}
+.badge-sinavance{background:#9CA3AF;}
+.badge-bajo{background:#E0483C;}
+.badge-medio{background:#F5A623;}
+.badge-alto{background:#3B82C4;}
+.badge-completado{background:#2FA85C;}
+
+/* COURSE LIST CARDS */
+.course-card{background:var(--bg-soft);border-radius:10px;padding:16px 18px;margin-bottom:14px;border-left:4px solid var(--primary-light);}
+.course-card .cc-name{font-size:14px;font-weight:800;color:var(--ink);}
+.course-card .cc-meta{font-size:11px;color:var(--muted);margin:3px 0 10px;}
+.course-card .cc-list{font-size:11.5px;color:var(--ink);line-height:1.8;}
+.course-card .cc-list span{display:inline-block;background:#fff;border:1px solid var(--border);border-radius:6px;padding:3px 9px;margin:2px 4px 2px 0;}
+.course-card .cc-footer{display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--ink);font-weight:700;}
+
+/* DIVISION TABLE reuse report-table */
+.reco-list{list-style:none;padding:0;margin:0;}
+.reco-list li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5;}
+.reco-list li:last-child{border-bottom:none;}
+.reco-list .rn{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+
+.legend-row{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+
+@media print{
+  #setupScreen,#toolbar{display:none !important;}
+  body{background:#fff;}
+  .page{box-shadow:none;margin:0;page-break-after:always;}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= SETUP SCREEN ================= -->
+<div id="setupScreen">
+  <h1>Generador de Reporte de Avance PID</h1>
+  <div class="subtitle">Carga la data cruda del cliente y genera un reporte ejecutivo en PDF, listo para enviar.</div>
+
+  <div class="row2">
+    <div class="field">
+      <label>Nombre del cliente</label>
+      <input type="text" id="inpClientName" placeholder="Ej. ABCO">
+    </div>
+    <div class="field">
+      <label>Fecha del reporte</label>
+      <input type="date" id="inpDate">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Color primario de la instancia</label>
+    <div class="color-row">
+      <input type="color" id="inpColorPicker" value="#3B0A6B">
+      <input type="text" id="inpColorHex" value="#3B0A6B" maxlength="7">
+    </div>
+    <div class="error-msg" id="colorError">Ese no es un color hexadecimal válido. Usa el formato #RRGGBB.</div>
+  </div>
+
+  <div class="field">
+    <label>Logo del cliente</label>
+    <div class="upload-box" id="logoBox" onclick="document.getElementById('inpLogo').click()">
+      <input type="file" id="inpLogo" accept="image/*">
+      <img id="logoPreview">
+      <div class="icon">🖼️</div>
+      <div class="txt" id="logoBoxTxt"><b>Haz clic para subir el logo</b><br>Sube la versión en blanco del logo (PNG con fondo transparente): se usa sobre el color primario en la portada y sobre chips de color en encabezados.</div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Archivo Excel con la data cruda</label>
+    <div class="upload-box" id="excelBox" onclick="document.getElementById('inpExcel').click()">
+      <input type="file" id="inpExcel" accept=".xlsx,.xls">
+      <div class="icon">📊</div>
+      <div class="txt" id="excelBoxTxt"><b>Haz clic para subir el Excel</b><br>Debe tener la hoja "Resultado consulta"</div>
+    </div>
+    <div id="missingCols"></div>
+    <div id="validationSummary"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" id="btnGenerate" disabled>Generar vista previa del reporte</button>
+  </div>
+</div>
+
+<!-- ================= TOOLBAR (preview mode) ================= -->
+<div id="toolbar" style="display:none;">
+  <div class="brand"><span class="tb-logo-chip" id="toolbarLogoChip" style="display:none;"><img id="toolbarLogo"></span><span id="toolbarClientName">Reporte de avance PID</span></div>
+  <div class="actions">
+    <div id="pdfProgress"><div class="spinner"></div><span id="pdfProgressTxt">Generando PDF...</span></div>
+    <button class="btn btn-secondary" id="btnBack">← Editar datos</button>
+    <button class="btn" id="btnDownload">Descargar PDF</button>
+  </div>
+</div>
+
+<!-- ================= REPORT ================= -->
+<div id="reportContainer"></div>
+
+<script>
+/* ============================================================
+   ESTADO GLOBAL
+============================================================ */
+let RAW_ROWS = [];
+let LOGO_DATAURL = null;
+let PRIMARY = "#3B0A6B";
+let PRIMARY_LIGHT = "#7C2FC9";
+let CLIENT_NAME = "";
+let REPORT_DATE = "";
+let METRICS = null;
+
+const REQUIRED_COLS = ["employee_name","employee_email","id_actividad","actividad_unica","cursos_asignados_count","cursos_finalizados_count","cursos_asignados_lista"];
+// al menos uno de estos debe existir para medir avance de actividad
+const ACTIVITY_PROGRESS_COLS = ["actividad_unica_evaluada","avance_colaborador"];
+
+/* ============================================================
+   UTILIDADES
+============================================================ */
+function isValidHex(hex){ return /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(hex); }
+
+function shade(hex, percent){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  let num = parseInt(hex,16);
+  let r = (num>>16)+Math.round(255*percent);
+  let g = ((num>>8)&0x00FF)+Math.round(255*percent);
+  let b = (num&0x0000FF)+Math.round(255*percent);
+  r = Math.min(255,Math.max(0,r)); g = Math.min(255,Math.max(0,g)); b = Math.min(255,Math.max(0,b));
+  return "#"+(0x1000000+r*0x10000+g*0x100+b).toString(16).slice(1);
+}
+
+function fmtPct(n){
+  if(isNaN(n) || !isFinite(n)) return "0%";
+  return Math.round(n*100)+"%";
+}
+function safeDiv(a,b){ return b>0 ? a/b : 0; }
+
+function toNum(v){
+  if(v===null || v===undefined || v==="") return 0;
+  const n = Number(v);
+  return isNaN(n) ? 0 : n;
+}
+
+function statusFromPct(p){
+  const pct = p*100;
+  if(pct<=0) return {label:"Sin avance", cls:"badge-sinavance"};
+  if(pct<34) return {label:"Bajo", cls:"badge-bajo"};
+  if(pct<67) return {label:"Medio", cls:"badge-medio"};
+  if(pct<100) return {label:"Alto", cls:"badge-alto"};
+  return {label:"Completado", cls:"badge-completado"};
+}
+
+function escapeHtml(str){
+  if(str===null||str===undefined) return "";
+  return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function parseDateCell(v){
+  if(!v && v!==0) return null;
+  if(v instanceof Date) return isNaN(v.getTime()) ? null : v;
+  if(typeof v === "number"){
+    // excel serial fallback
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtDate(d){
+  if(!d) return null;
+  const meses = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+}
+function fmtDateLong(d){
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
+/* ============================================================
+   SETUP SCREEN — INTERACCIONES
+============================================================ */
+const inpClientName = document.getElementById('inpClientName');
+const inpDate = document.getElementById('inpDate');
+const inpColorPicker = document.getElementById('inpColorPicker');
+const inpColorHex = document.getElementById('inpColorHex');
+const colorError = document.getElementById('colorError');
+const inpLogo = document.getElementById('inpLogo');
+const logoBox = document.getElementById('logoBox');
+const logoPreview = document.getElementById('logoPreview');
+const logoBoxTxt = document.getElementById('logoBoxTxt');
+const inpExcel = document.getElementById('inpExcel');
+const excelBox = document.getElementById('excelBox');
+const excelBoxTxt = document.getElementById('excelBoxTxt');
+const missingColsDiv = document.getElementById('missingCols');
+const validationSummaryDiv = document.getElementById('validationSummary');
+const btnGenerate = document.getElementById('btnGenerate');
+
+inpDate.value = new Date().toISOString().slice(0,10);
+
+inpColorPicker.addEventListener('input', ()=>{ inpColorHex.value = inpColorPicker.value; validateColorField(); });
+inpColorHex.addEventListener('input', ()=>{
+  let v = inpColorHex.value.trim();
+  if(v && !v.startsWith('#')) v = '#'+v;
+  inpColorHex.value = v;
+  if(isValidHex(v)) inpColorPicker.value = v.length===4 ? shade(v,0) : v;
+  validateColorField();
+});
+function validateColorField(){
+  const v = inpColorHex.value.trim();
+  if(v==="" || isValidHex(v)){ colorError.style.display='none'; }
+  else{ colorError.style.display='block'; }
+  checkReady();
+}
+
+let excelParsed = false;
+inpLogo.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    LOGO_DATAURL = ev.target.result;
+    logoPreview.src = LOGO_DATAURL;
+    logoPreview.style.display = 'block';
+    logoBoxTxt.innerHTML = "<b>"+escapeHtml(f.name)+"</b><br>Clic para cambiar el logo";
+    logoBox.classList.add('filled');
+  };
+  reader.readAsDataURL(f);
+});
+
+inpExcel.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  excelBoxTxt.innerHTML = "<b>Leyendo "+escapeHtml(f.name)+"...</b>";
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const data = new Uint8Array(ev.target.result);
+      const wb = XLSX.read(data, {type:'array', cellDates:true});
+      let sheetName = wb.SheetNames.find(n => n.trim().toLowerCase() === "resultado consulta");
+      if(!sheetName) sheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(ws, {defval:null, raw:true});
+      RAW_ROWS = json;
+      excelParsed = true;
+      excelBox.classList.add('filled');
+      excelBoxTxt.innerHTML = "<b>"+escapeHtml(f.name)+"</b><br>"+json.length+" filas detectadas en \""+sheetName+"\". Clic para cambiar archivo";
+      runValidation();
+    }catch(err){
+      excelParsed = false;
+      excelBoxTxt.innerHTML = "<b>No se pudo leer el archivo.</b><br>Verifica que sea un Excel válido.";
+      missingColsDiv.innerHTML = "Error al leer el archivo: "+escapeHtml(err.message);
+    }
+    checkReady();
+  };
+  reader.readAsArrayBuffer(f);
+});
+
+function runValidation(){
+  if(!RAW_ROWS.length){ return; }
+  const cols = Object.keys(RAW_ROWS[0]);
+  const missing = REQUIRED_COLS.filter(c => !cols.includes(c));
+  const hasProgressCol = ACTIVITY_PROGRESS_COLS.some(c => cols.includes(c));
+  if(!hasProgressCol) missing.push("actividad_unica_evaluada (o avance_colaborador)");
+
+  if(missing.length){
+    missingColsDiv.innerHTML = "⚠️ No se encontraron estas columnas clave, mapéalas manualmente en tu archivo antes de continuar: <b>"+missing.join(", ")+"</b>";
+    validationSummaryDiv.classList.remove('show');
+    return;
+  }
+  missingColsDiv.innerHTML = "";
+
+  const groups = groupByEmployee(RAW_ROWS);
+  const hasCursoSplit = groups.some(g=>g.tieneCursoSplit);
+  const divisions = new Set();
+  let minDate=null, maxDate=null, cursosAsig=0, cursosFin=0;
+  let cursosPid=0, cursosFueraPid=0, cursosPidFin=0, cursosFueraPidFin=0;
+  groups.forEach(g=>{
+    if(g.division) divisions.add(g.division);
+    cursosAsig += g.cursosAsignados;
+    cursosFin += g.cursosFinalizados;
+    cursosPid += g.cursosPid;
+    cursosFueraPid += g.cursosFueraPid;
+    cursosPidFin += g.cursosPidFinalizados;
+    cursosFueraPidFin += g.cursosFueraPidFinalizados;
+    g.activities.forEach(a=>{
+      if(toNum(a.actividad_unica) <= 0) return;
+      const d = parseDateCell(a.fecha_creacion);
+      if(d){ if(!minDate||d<minDate) minDate=d; if(!maxDate||d>maxDate) maxDate=d; }
+    });
+  });
+  const totalActividades = RAW_ROWS.reduce((total, row) => total + toNum(row.actividad_unica), 0);
+  const totalCompletadas = groups.reduce((s,g)=>s+g.actividadesCompletadas,0);
+
+  const cursosLineasHtml = hasCursoSplit ? `
+    <div class="vline"><span>Cursos PID asignados</span><b>${cursosPid}</b></div>
+    <div class="vline"><span>Cursos adicionales asignados</span><b>${cursosFueraPid}</b></div>
+    <div class="vline"><span>Cursos totales asignados</span><b>${cursosAsig}</b></div>
+    <div class="vline"><span>Cursos PID finalizados</span><b>${cursosPidFin}</b></div>
+    <div class="vline"><span>Cursos adicionales finalizados</span><b>${cursosFueraPidFin}</b></div>
+    <div class="vline"><span>Cursos totales finalizados</span><b>${cursosFin}</b></div>
+  ` : `
+    <div class="vline"><span>Cursos asignados</span><b>${cursosAsig}</b></div>
+    <div class="vline"><span>Cursos finalizados</span><b>${cursosFin}</b></div>
+  `;
+
+  validationSummaryDiv.innerHTML = `
+    <div class="vline"><span>Colaboradores únicos detectados</span><b>${groups.length}</b></div>
+    <div class="vline"><span>Actividades asignadas</span><b>${totalActividades}</b></div>
+    <div class="vline"><span>Actividades completadas/evaluadas</span><b>${totalCompletadas}</b></div>
+    ${cursosLineasHtml}
+    <div class="vline"><span>Áreas / divisiones detectadas</span><b>${divisions.size}</b></div>
+    <div class="vline"><span>Rango de fechas de creación</span><b>${minDate&&maxDate ? fmtDate(minDate)+" — "+fmtDate(maxDate) : "Sin información"}</b></div>
+  `;
+  validationSummaryDiv.classList.add('show');
+}
+
+function checkReady(){
+  const colorOk = isValidHex(inpColorHex.value.trim());
+  btnGenerate.disabled = !(excelParsed && colorOk);
+}
+inpClientName.addEventListener('input', checkReady);
+
+/* ============================================================
+   AGRUPACIÓN Y CÁLCULO DE MÉTRICAS
+============================================================ */
+function groupByEmployee(rows){
+  const map = new Map();
+  rows.forEach(r=>{
+    const key = (r.employee_email && String(r.employee_email).trim()) || (r.employee_name && String(r.employee_name).trim()) || "sin-identificar";
+    if(!map.has(key)){
+      map.set(key, {
+        key,
+        name: r.employee_name || "Sin nombre",
+        email: r.employee_email || "Sin información",
+        division: r.division || null,
+        boss: r.boss_name || null,
+        job: r.job || null,
+        activities: [],
+        cursosAsignados: null,
+        cursosFinalizados: null,
+        cursosLista: null,
+        cursosPid: null,
+        cursosFueraPid: null,
+        cursosPidFinalizados: null,
+        cursosFueraPidFinalizados: null,
+        cursosPidLista: null,
+        cursosFueraPidLista: null,
+        actividadesCompletadas: 0,
+        actividadesAsignadas: 0
+      });
+    }
+    const g = map.get(key);
+    g.activities.push(r);
+    // actividades asignadas: solo cuentan filas con actividad_unica = 1
+    const actividadUnica = toNum(r.actividad_unica);
+    g.actividadesAsignadas += actividadUnica;
+    // avance de actividad: usar actividad_unica_evaluada, fallback avance_colaborador
+    let evaluada = r.actividad_unica_evaluada;
+    if(evaluada===null || evaluada===undefined) evaluada = r.avance_colaborador;
+    if(actividadUnica > 0){
+      const valorEvaluado = toNum(evaluada);
+      g.actividadesCompletadas += (valorEvaluado >= 1 ? 1 : (valorEvaluado > 0 && valorEvaluado < 1 ? valorEvaluado : 0));
+    }
+    // cursos: tomar un solo valor por colaborador (el primero no-nulo)
+    if(g.cursosAsignados === null && r.cursos_asignados_count !== null && r.cursos_asignados_count !== undefined){
+      g.cursosAsignados = toNum(r.cursos_asignados_count);
+    }
+    if(g.cursosFinalizados === null && r.cursos_finalizados_count !== null && r.cursos_finalizados_count !== undefined){
+      g.cursosFinalizados = toNum(r.cursos_finalizados_count);
+    }
+    if(!g.cursosLista && r.cursos_asignados_lista){ g.cursosLista = r.cursos_asignados_lista; }
+    // cursos PID / fuera del PID: mismo criterio, un único valor por colaborador
+    // (estos campos vienen repetidos en cada fila de actividad; NO deben sumarse)
+    if(g.cursosPid === null && r.cursos_pid_count !== null && r.cursos_pid_count !== undefined){
+      g.cursosPid = toNum(r.cursos_pid_count);
+    }
+    if(g.cursosFueraPid === null && r.cursos_fuera_pid_count !== null && r.cursos_fuera_pid_count !== undefined){
+      g.cursosFueraPid = toNum(r.cursos_fuera_pid_count);
+    }
+    if(g.cursosPidFinalizados === null && r.cursos_pid_finalizados_count !== null && r.cursos_pid_finalizados_count !== undefined){
+      g.cursosPidFinalizados = toNum(r.cursos_pid_finalizados_count);
+    }
+    if(g.cursosFueraPidFinalizados === null && r.cursos_fuera_pid_finalizados_count !== null && r.cursos_fuera_pid_finalizados_count !== undefined){
+      g.cursosFueraPidFinalizados = toNum(r.cursos_fuera_pid_finalizados_count);
+    }
+    if(!g.cursosPidLista && r.cursos_pid_lista){ g.cursosPidLista = r.cursos_pid_lista; }
+    if(!g.cursosFueraPidLista && r.cursos_fuera_pid_lista){ g.cursosFueraPidLista = r.cursos_fuera_pid_lista; }
+    if(!g.division && r.division) g.division = r.division;
+    if(!g.boss && r.boss_name) g.boss = r.boss_name;
+    if(!g.job && r.job) g.job = r.job;
+  });
+
+  return Array.from(map.values()).map(g=>{
+    const actividadesAsignadas = g.actividadesAsignadas;
+    const actividadesCompletadas = Math.round(g.actividadesCompletadas);
+
+    // Marca si el Excel trae el desglose PID / fuera del PID para este
+    // colaborador (para poder degradar limpiamente si el archivo es
+    // uno "viejo" que solo trae los totales consolidados).
+    const tieneCursoSplit = (
+      g.cursosPid !== null || g.cursosFueraPid !== null ||
+      g.cursosPidFinalizados !== null || g.cursosFueraPidFinalizados !== null ||
+      g.cursosPidLista !== null || g.cursosFueraPidLista !== null
+    );
+
+    const cursosPid = g.cursosPid || 0;
+    const cursosFueraPid = g.cursosFueraPid || 0;
+    const cursosPidFinalizados = g.cursosPidFinalizados || 0;
+    const cursosFueraPidFinalizados = g.cursosFueraPidFinalizados || 0;
+
+    // Fuente de verdad: se prioriza el total consolidado que ya trae el
+    // Excel (cursos_asignados_count / cursos_finalizados_count). Si por
+    // alguna razón no viene, se calcula como PID + fuera del PID.
+    const cursosAsignados = (g.cursosAsignados !== null && g.cursosAsignados !== undefined)
+      ? g.cursosAsignados
+      : (cursosPid + cursosFueraPid);
+    const cursosFinalizados = (g.cursosFinalizados !== null && g.cursosFinalizados !== undefined)
+      ? g.cursosFinalizados
+      : (cursosPidFinalizados + cursosFueraPidFinalizados);
+
+    const pctActividades = safeDiv(actividadesCompletadas, actividadesAsignadas);
+    const pctCursos = safeDiv(cursosFinalizados, cursosAsignados);
+    const pctGeneral = safeDiv(actividadesCompletadas+cursosFinalizados, actividadesAsignadas+cursosAsignados);
+    return {
+      ...g,
+      actividadesAsignadas, actividadesCompletadas,
+      cursosAsignados, cursosFinalizados,
+      cursosPid, cursosFueraPid, cursosPidFinalizados, cursosFueraPidFinalizados,
+      tieneCursoSplit,
+      pctActividades, pctCursos, pctGeneral,
+      division: g.division || "Sin información",
+      boss: g.boss || "Sin información",
+      job: g.job || "Sin información",
+      cursosListaArr: g.cursosLista ? String(g.cursosLista).split('|').map(s=>s.trim()).filter(Boolean) : [],
+      cursosPidListaArr: g.cursosPidLista ? String(g.cursosPidLista).split('|').map(s=>s.trim()).filter(Boolean) : [],
+      cursosFueraPidListaArr: g.cursosFueraPidLista ? String(g.cursosFueraPidLista).split('|').map(s=>s.trim()).filter(Boolean) : []
+    };
+  });
+}
+
+function computeMetrics(rows){
+  const groups = groupByEmployee(rows);
+  const totalColaboradores = groups.length;
+  const totalActividadesAsignadas = groups.reduce((total, group) => total + group.actividadesAsignadas, 0);
+  const totalActividadesCompletadas = groups.reduce((s,g)=>s+g.actividadesCompletadas,0);
+  const totalCursosAsignados = groups.reduce((s,g)=>s+g.cursosAsignados,0);
+  const totalCursosFinalizados = groups.reduce((s,g)=>s+g.cursosFinalizados,0);
+  const totalCursosPid = groups.reduce((s,g)=>s+g.cursosPid,0);
+  const totalCursosFueraPid = groups.reduce((s,g)=>s+g.cursosFueraPid,0);
+  const totalCursosPidFinalizados = groups.reduce((s,g)=>s+g.cursosPidFinalizados,0);
+  const totalCursosFueraPidFinalizados = groups.reduce((s,g)=>s+g.cursosFueraPidFinalizados,0);
+  // true si el Excel trae el desglose PID / fuera del PID (al menos un colaborador)
+  const hasCursoSplit = groups.some(g=>g.tieneCursoSplit);
+  const divisions = [...new Set(groups.map(g=>g.division))];
+
+  let minDate=null, maxDate=null;
+  rows.forEach(r=>{
+    if(toNum(r.actividad_unica) <= 0) return;
+    const d = parseDateCell(r.fecha_creacion);
+    if(d){ if(!minDate||d<minDate) minDate=d; if(!maxDate||d>maxDate) maxDate=d; }
+  });
+
+  const pctActividades = safeDiv(totalActividadesCompletadas, totalActividadesAsignadas);
+  const pctCursos = safeDiv(totalCursosFinalizados, totalCursosAsignados);
+  const pctGeneral = safeDiv(totalActividadesCompletadas+totalCursosFinalizados, totalActividadesAsignadas+totalCursosAsignados);
+
+  // por división
+  const divMap = new Map();
+  groups.forEach(g=>{
+    if(!divMap.has(g.division)){
+      divMap.set(g.division, {
+        division:g.division, colaboradores:0, actAsig:0, actComp:0,
+        cursAsig:0, cursFin:0,
+        cursPidAsig:0, cursPidFin:0, cursFueraAsig:0, cursFueraFin:0
+      });
+    }
+    const d = divMap.get(g.division);
+    d.colaboradores++;
+    d.actAsig += g.actividadesAsignadas;
+    d.actComp += g.actividadesCompletadas;
+    d.cursAsig += g.cursosAsignados;
+    d.cursFin += g.cursosFinalizados;
+    d.cursPidAsig += g.cursosPid;
+    d.cursPidFin += g.cursosPidFinalizados;
+    d.cursFueraAsig += g.cursosFueraPid;
+    d.cursFueraFin += g.cursosFueraPidFinalizados;
+  });
+  const divisionStats = Array.from(divMap.values()).map(d=>({
+    ...d,
+    pctAct: safeDiv(d.actComp, d.actAsig),
+    pctCurs: safeDiv(d.cursFin, d.cursAsig),
+    pctGeneral: safeDiv(d.actComp+d.cursFin, d.actAsig+d.cursAsig)
+  })).sort((a,b)=> b.pctGeneral - a.pctGeneral);
+
+  // colaboradores ordenados por prioridad de seguimiento (menor avance primero)
+  const groupsSorted = [...groups].sort((a,b)=> a.pctGeneral - b.pctGeneral);
+  const prioridad = groupsSorted.filter(g=>g.pctGeneral < 0.34).slice(0,5);
+
+  return {
+    groups, divisionStats, divisions,
+    totalColaboradores, totalActividadesAsignadas, totalActividadesCompletadas,
+    totalCursosAsignados, totalCursosFinalizados,
+    totalCursosPid, totalCursosFueraPid,
+    totalCursosPidFinalizados, totalCursosFueraPidFinalizados,
+    hasCursoSplit,
+    pctActividades, pctCursos, pctGeneral,
+    minDate, maxDate, prioridad,
+    actividadesPendientes: Math.max(totalActividadesAsignadas - totalActividadesCompletadas, 0),
+    cursosPendientes: Math.max(totalCursosAsignados - totalCursosFinalizados, 0)
+  };
+}
+
+/* ============================================================
+   TEXTOS EJECUTIVOS AUTOMÁTICOS
+============================================================ */
+function nivelTexto(pct){
+  const p = pct*100;
+  if(p<=0) return "sin avance registrado";
+  if(p<34) return "un nivel de avance bajo";
+  if(p<67) return "un nivel de avance medio";
+  if(p<100) return "un nivel de avance alto";
+  return "un cierre completo";
+}
+
+function analisisActividades(m){
+  const pct = fmtPct(m.pctActividades);
+  if(m.pctActividades < 0.34){
+    return `El avance en actividades se ubica en ${pct}, lo que refleja ${nivelTexto(m.pctActividades)} y una oportunidad clara de acompañamiento. De las ${m.totalActividadesAsignadas} actividades asignadas, ${m.actividadesPendientes} permanecen pendientes. Se recomienda reforzar el seguimiento directo con los colaboradores y líderes para activar el cierre de actividades en las próximas semanas.`;
+  } else if(m.pctActividades < 0.67){
+    return `El avance en actividades es de ${pct}, un nivel medio que muestra movimiento constante pero con espacio para acelerar. Aún quedan ${m.actividadesPendientes} actividades pendientes de las ${m.totalActividadesAsignadas} asignadas. Mantener la cadencia de seguimiento ayudará a consolidar el cierre.`;
+  } else if(m.pctActividades < 1){
+    return `El avance en actividades alcanza ${pct}, un nivel alto que refleja buen compromiso general. Restan ${m.actividadesPendientes} actividades por completar de las ${m.totalActividadesAsignadas} asignadas, por lo que un empuje final permitiría cerrar el ciclo casi en su totalidad.`;
+  }
+  return `El avance en actividades es de ${pct}, lo que indica que la totalidad de las actividades asignadas ha sido completada. Un resultado sobresaliente que vale la pena reconocer con el equipo.`;
+}
+
+function analisisCursos(m){
+  const pct = fmtPct(m.pctCursos);
+  let base;
+  if(m.pctCursos < 0.34){
+    base = `El avance en cursos es de ${pct}, con ${m.cursosPendientes} cursos pendientes de los ${m.totalCursosAsignados} asignados. Se sugiere reforzar la comunicación sobre la importancia de completar la ruta de aprendizaje y dar visibilidad del pendiente a los líderes directos.`;
+  } else if(m.pctCursos < 0.67){
+    base = `El avance en cursos se ubica en ${pct}, con movimiento constante pero todavía con ${m.cursosPendientes} cursos pendientes de ${m.totalCursosAsignados} asignados. Reforzar recordatorios periódicos ayudará a mantener el ritmo de finalización.`;
+  } else if(m.pctCursos < 1){
+    base = `El avance en cursos es de ${pct}, un nivel alto que muestra buen compromiso con la ruta de formación. Restan ${m.cursosPendientes} cursos de ${m.totalCursosAsignados} asignados para llegar al cierre total.`;
+  } else {
+    base = `El avance en cursos es de ${pct}, lo que significa que todos los cursos asignados fueron finalizados. Un resultado excelente en la ruta de formación del equipo.`;
+  }
+
+  if(m.hasCursoSplit && m.totalCursosFueraPid > 0){
+    const pctAdicionales = safeDiv(m.totalCursosFueraPid, m.totalCursosAsignados);
+    base += ` Este avance contempla tanto los cursos asociados al PID (${m.totalCursosPid}) como los cursos adicionales asignados al colaborador (${m.totalCursosFueraPid}), que representan el ${fmtPct(pctAdicionales)} del total de cursos asignados.`;
+  } else if(m.hasCursoSplit && m.totalCursosPid > 0){
+    base += ` En este periodo no se identificaron cursos adicionales fuera del PID; el avance corresponde únicamente a los cursos definidos dentro del plan.`;
+  }
+  return base;
+}
+
+function analisisEjecutivo(m){
+  const pctG = fmtPct(m.pctGeneral);
+  const nivel = m.pctGeneral < 0.34 ? "una oportunidad importante de seguimiento" :
+                m.pctGeneral < 0.67 ? "un avance moderado con espacio de mejora" :
+                m.pctGeneral < 1 ? "un avance sólido y consistente" : "un cierre completo del ciclo";
+  const peorDivision = m.divisionStats.length ? m.divisionStats[m.divisionStats.length-1] : null;
+  const mejorDivision = m.divisionStats.length ? m.divisionStats[0] : null;
+
+  let texto = `El avance general de desarrollo es de ${pctG}, lo que muestra ${nivel}. `;
+  texto += m.pctActividades < m.pctCursos
+    ? `La ejecución de actividades es el área que más requiere impulso, con ${fmtPct(m.pctActividades)} de avance, mientras que el avance en cursos presenta mayor movimiento con ${fmtPct(m.pctCursos)}. `
+    : `El avance en cursos es el área con mayor oportunidad, con ${fmtPct(m.pctCursos)}, mientras que las actividades muestran ${fmtPct(m.pctActividades)} de cierre. `;
+
+  if(peorDivision && mejorDivision && peorDivision.division !== mejorDivision.division){
+    texto += `A nivel de área, ${escapeHtml(peorDivision.division)} es la que requiere mayor acompañamiento con ${fmtPct(peorDivision.pctGeneral)} de avance general, mientras que ${escapeHtml(mejorDivision.division)} lidera con ${fmtPct(mejorDivision.pctGeneral)}. `;
+  }
+  if(m.hasCursoSplit && m.totalCursosFueraPid > 0){
+    const pctAdicionales = safeDiv(m.totalCursosFueraPid, m.totalCursosAsignados);
+    texto += `Además de los cursos definidos originalmente dentro del PID, se identificaron ${m.totalCursosFueraPid} cursos adicionales asignados a los colaboradores, de los cuales ${m.totalCursosFueraPidFinalizados} ya han sido finalizados. Los cursos adicionales representan el ${fmtPct(pctAdicionales)} del total de cursos asignados. `;
+  }
+  if(m.prioridad.length){
+    texto += `Se identificaron ${m.prioridad.length} colaborador(es) con avance bajo o nulo que requieren seguimiento prioritario en el corto plazo. `;
+  }
+  texto += `Se recomienda priorizar el acompañamiento con los colaboradores sin avance, establecer recordatorios periódicos y dar visibilidad a los líderes sobre los pendientes por persona para impulsar el cierre del ciclo.`;
+  return texto;
+}
+
+function recomendaciones(m){
+  const list = [];
+  if(m.prioridad.length){
+    list.push(`Dar seguimiento semanal a ${m.prioridad.length} colaborador(es) con estatus "Sin avance" o "Bajo": ${m.prioridad.map(g=>escapeHtml(g.name)).join(', ')}.`);
+  } else {
+    list.push(`Dar seguimiento semanal a los colaboradores con estatus "Sin avance" o "Bajo".`);
+  }
+  list.push(`Compartir con los líderes directos el listado de actividades y cursos pendientes por colaborador.`);
+  list.push(`Reforzar con el equipo la importancia del PID como herramienta de desarrollo, no solo como tarea administrativa.`);
+  list.push(`Definir una fecha objetivo de cierre para actividades y cursos pendientes, y comunicarla a todo el equipo.`);
+  if(m.hasCursoSplit && m.totalCursosFueraPid > 0){
+    list.push(`Dar visibilidad a los líderes sobre los ${m.totalCursosFueraPid} cursos adicionales asignados fuera del PID, ya que también forman parte del avance general de desarrollo del colaborador.`);
+  }
+  if(m.divisionStats.length>1){
+    const peor = m.divisionStats[m.divisionStats.length-1];
+    list.push(`Priorizar acompañamiento en el área de ${escapeHtml(peor.division)}, que presenta el menor avance general (${fmtPct(peor.pctGeneral)}).`);
+  }
+  list.push(`Revisar con los líderes si las actividades asignadas siguen siendo pertinentes para cada colaborador.`);
+  return list;
+}
+
+/* ============================================================
+   CONSTRUCCIÓN DE PÁGINAS DEL REPORTE
+============================================================ */
+function chunk(arr, size){
+  const out = [];
+  for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size));
+  return out;
+}
+
+function pageHeader(title){
+  const logoHtml = LOGO_DATAURL
+    ? `<span class="ph-logo-chip"><img src="${LOGO_DATAURL}"></span>`
+    : `<span style="font-weight:800;color:var(--primary);font-size:14px;">${escapeHtml(CLIENT_NAME||"Reporte PID")}</span>`;
+  return `<div class="page-header">${logoHtml}<span class="ph-title">${title}</span></div>`;
+}
+function pageFooter(pageNum){
+  return `<div class="page-footer"><span>${escapeHtml(CLIENT_NAME)} · Reporte de avance PID</span><span>Página ${pageNum}</span></div>`;
+}
+
+function buildCoverPage(){
+  const logoHtml = LOGO_DATAURL ? `<img class="cover-logo" src="${LOGO_DATAURL}">` : "";
+  return `
+  <div class="page cover-page">
+    <div class="cover-bg-shape"></div>
+    <div class="cover-bg-shape2"></div>
+    ${logoHtml}
+    <div class="cover-client">${escapeHtml(CLIENT_NAME)}</div>
+    <div class="cover-title">Reporte de avance PID</div>
+    <div class="cover-bar"></div>
+    <div class="cover-subtitle">Seguimiento de cursos, actividades y avance general de Planes Individuales de Desarrollo</div>
+    <div class="cover-date">${escapeHtml(REPORT_DATE)}</div>
+  </div>`;
+}
+
+function buildValidationPage(m, pageNum){
+  const cursosDetalleHtml = m.hasCursoSplit ? `
+    <div class="sec-title" style="font-size:16px;margin-top:22px;">Detalle de cursos</div>
+    <div class="val-grid">
+      <div class="val-item"><span class="vl">Cursos PID asignados</span><span class="vv">${m.totalCursosPid}</span></div>
+      <div class="val-item"><span class="vl">Cursos adicionales asignados</span><span class="vv">${m.totalCursosFueraPid}</span></div>
+      <div class="val-item"><span class="vl">Cursos totales asignados</span><span class="vv">${m.totalCursosAsignados}</span></div>
+      <div class="val-item"><span class="vl">Cursos PID finalizados</span><span class="vv">${m.totalCursosPidFinalizados}</span></div>
+      <div class="val-item"><span class="vl">Cursos adicionales finalizados</span><span class="vv">${m.totalCursosFueraPidFinalizados}</span></div>
+      <div class="val-item"><span class="vl">Cursos totales finalizados</span><span class="vv">${m.totalCursosFinalizados}</span></div>
+    </div>` : '';
+  return `
+  <div class="page">
+    ${pageHeader("Validación de datos")}
+    <div class="sec-title">Validación de datos cargados</div>
+    <div class="sec-sub">Resumen de la información detectada en el archivo antes del análisis ejecutivo.</div>
+    <div class="val-grid">
+      <div class="val-item"><span class="vl">Colaboradores únicos</span><span class="vv">${m.totalColaboradores}</span></div>
+      <div class="val-item"><span class="vl">Actividades asignadas</span><span class="vv">${m.totalActividadesAsignadas}</span></div>
+      <div class="val-item"><span class="vl">Actividades completadas</span><span class="vv">${m.totalActividadesCompletadas}</span></div>
+      ${m.hasCursoSplit ? '' : `<div class="val-item"><span class="vl">Cursos asignados</span><span class="vv">${m.totalCursosAsignados}</span></div>
+      <div class="val-item"><span class="vl">Cursos finalizados</span><span class="vv">${m.totalCursosFinalizados}</span></div>`}
+      <div class="val-item"><span class="vl">Áreas / divisiones</span><span class="vv">${m.divisions.length}</span></div>
+    </div>
+    ${cursosDetalleHtml}
+    <div class="val-item" style="grid-column:1/-1;margin-top:${m.hasCursoSplit ? '16px' : '0'};">
+      <span class="vl">Rango de fechas de creación de actividades</span>
+      <span class="vv" style="font-size:14px;">${m.minDate && m.maxDate ? fmtDate(m.minDate)+" — "+fmtDate(m.maxDate) : "Sin información"}</span>
+    </div>
+    <div class="analysis-box" style="margin-top:24px;">
+      <span class="ab-tag">Nota metodológica</span>
+      Las actividades corresponden exclusivamente a las asignaciones del Plan Individual de Desarrollo y se contabilizan mediante la suma de la columna "actividad_unica" por colaborador, evitando que múltiples filas asociadas a una misma actividad inflen artificialmente el total de actividades asignadas. ${m.hasCursoSplit ? 'Los cursos contemplan tanto aquellos asociados originalmente al PID como los cursos adicionales vigentes asignados posteriormente al colaborador fuera de su plan; ambos ' : 'Los cursos asignados y finalizados '}se calculan tomando un único registro por colaborador, evitando la duplicidad generada por las filas de actividad. El avance general se calcula considerando las actividades completadas y ${m.hasCursoSplit ? 'todos los cursos finalizados (PID + adicionales)' : 'los cursos finalizados'} sobre el total de actividades y cursos vigentes asignados.
+    </div>
+    ${pageFooter(pageNum)}
+  </div>`;
+}
+
+function donutSVGId(id, pct, color, size){
+  return `<canvas id="${id}" width="${size}" height="${size}"></canvas>`;
+}
+
+function buildResultadoGeneralPage(m, pageNum){
+  return `
+  <div class="page">
+    ${pageHeader("Resultado general")}
+    <div class="sec-title">Resultado general</div>
+    <div class="sec-sub">Vista ejecutiva del avance consolidado de actividades y cursos${m.hasCursoSplit ? ', incluyendo cursos del PID y cursos adicionales' : ''}.</div>
+
+    <div class="gauge-row">
+      <div class="gauge-wrap">${donutSVGId('chartGeneral', m.pctGeneral, PRIMARY, 220)}
+        <div class="gauge-center"><div class="gc-pct" id="gaugeGeneralPct">${fmtPct(m.pctGeneral)}</div><div class="gc-label">Avance general</div></div>
+      </div>
+      <div class="gauge-desc">
+        <h3>Avance general de desarrollo</h3>
+        <p>Calculado como la suma de actividades completadas y cursos finalizados, sobre el total de actividades y cursos vigentes asignados${m.hasCursoSplit ? ' (cursos del PID y cursos adicionales asignados al colaborador)' : ''}. Este indicador resume el desempeño global del ciclo de desarrollo.</p>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Colaboradores</div><div class="kpi-value">${m.totalColaboradores}</div><div class="kpi-sub">Participantes en el PID</div></div>
+      <div class="kpi-card"><div class="kpi-label">Actividades</div><div class="kpi-value">${m.totalActividadesCompletadas}/${m.totalActividadesAsignadas}</div><div class="kpi-sub">Completadas / asignadas</div></div>
+      <div class="kpi-card"><div class="kpi-label">Cursos</div><div class="kpi-value">${m.totalCursosFinalizados}/${m.totalCursosAsignados}</div><div class="kpi-sub">Finalizados / asignados${m.hasCursoSplit ? ' (PID + adicionales)' : ''}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Avance general</div><div class="kpi-value">${fmtPct(m.pctGeneral)}</div><div class="kpi-sub">Actividades + cursos</div></div>
+    </div>
+
+    <div class="analysis-box">
+      <span class="ab-tag">Lectura del resultado</span>
+      ${analisisEjecutivo(m)}
+    </div>
+    ${pageFooter(pageNum)}
+  </div>`;
+}
+
+function buildAvanceActividadesPage(m, pageNum){
+  return `
+  <div class="page">
+    ${pageHeader("Avance en actividades")}
+    <div class="sec-title">Avance en actividades</div>
+    <div class="sec-sub">Cierre de actividades asignadas dentro del Plan Individual de Desarrollo.</div>
+
+    <div class="charts-row">
+      <div class="chart-box">${donutSVGId('chartActividades', m.pctActividades, PRIMARY, 210)}
+        <div class="chart-center"><div class="cc-pct" style="color:${PRIMARY}">${fmtPct(m.pctActividades)}</div><div class="cc-label">Avance</div></div>
+      </div>
+      <div class="stats-mini">
+        <div class="stat-line"><span class="sl-label">Actividades asignadas</span><span class="sl-value">${m.totalActividadesAsignadas}</span></div>
+        <div class="stat-line"><span class="sl-label">Actividades completadas</span><span class="sl-value" style="color:${PRIMARY}">${m.totalActividadesCompletadas}</span></div>
+        <div class="stat-line"><span class="sl-label">Actividades pendientes</span><span class="sl-value" style="color:#E0483C">${m.actividadesPendientes}</span></div>
+      </div>
+    </div>
+
+    <div class="analysis-box">
+      <span class="ab-tag">Análisis de Customer Success</span>
+      ${analisisActividades(m)}
+    </div>
+    ${pageFooter(pageNum)}
+  </div>`;
+}
+
+function buildAvanceCursosPage(m, pageNum){
+  const distribucionHtml = m.hasCursoSplit ? `
+    <div class="sec-title" style="font-size:15px;margin-top:20px;">Distribución de cursos</div>
+    <div class="stats-mini">
+      <div class="stat-line"><span class="sl-label">Cursos PID</span><span class="sl-value">${m.totalCursosPidFinalizados}/${m.totalCursosPid} finalizados</span></div>
+      <div class="stat-line"><span class="sl-label">Cursos adicionales</span><span class="sl-value">${m.totalCursosFueraPidFinalizados}/${m.totalCursosFueraPid} finalizados</span></div>
+    </div>` : '';
+  return `
+  <div class="page">
+    ${pageHeader("Avance en cursos")}
+    <div class="sec-title">Avance en cursos</div>
+    <div class="sec-sub">Finalización de la ruta de formación asignada a cada colaborador${m.hasCursoSplit ? ', incluyendo cursos del PID y cursos adicionales' : ''}.</div>
+
+    <div class="charts-row">
+      <div class="chart-box">${donutSVGId('chartCursos', m.pctCursos, PRIMARY_LIGHT, 210)}
+        <div class="chart-center"><div class="cc-pct" style="color:${PRIMARY_LIGHT}">${fmtPct(m.pctCursos)}</div><div class="cc-label">Avance</div></div>
+      </div>
+      <div class="stats-mini">
+        <div class="stat-line"><span class="sl-label">Cursos asignados</span><span class="sl-value">${m.totalCursosAsignados}</span></div>
+        <div class="stat-line"><span class="sl-label">Cursos finalizados</span><span class="sl-value" style="color:${PRIMARY_LIGHT}">${m.totalCursosFinalizados}</span></div>
+        <div class="stat-line"><span class="sl-label">Cursos pendientes</span><span class="sl-value" style="color:#E0483C">${m.cursosPendientes}</span></div>
+      </div>
+    </div>
+    ${distribucionHtml}
+    <div class="analysis-box">
+      <span class="ab-tag">Análisis de Customer Success</span>
+      ${analisisCursos(m)}
+    </div>
+    ${pageFooter(pageNum)}
+  </div>`;
+}
+
+function buildColaboradoresPages(m, startPageNum){
+  const rowsPerPage = 11;
+  const chunks = chunk(m.groups, rowsPerPage);
+  const headerRow = m.hasCursoSplit
+    ? `<th>Colaborador</th><th>División</th><th>Activ.</th><th>Cursos PID</th><th>Cursos extra</th><th>Cursos total</th><th>% Cursos</th><th>% General</th><th>Estatus</th>`
+    : `<th>Colaborador</th><th>Correo</th><th>División</th><th>Activ.</th><th>% Act.</th><th>Cursos</th><th>% Curs.</th><th>% PID</th><th>Estatus</th>`;
+  return chunks.map((rows, idx)=>{
+    const trs = rows.map(g=>{
+      const st = statusFromPct(g.pctGeneral);
+      if(m.hasCursoSplit){
+        return `<tr>
+          <td>${escapeHtml(g.name)}</td>
+          <td>${escapeHtml(g.division)}</td>
+          <td>${g.actividadesCompletadas}/${g.actividadesAsignadas}</td>
+          <td>${g.cursosPidFinalizados}/${g.cursosPid}</td>
+          <td>${g.cursosFueraPidFinalizados}/${g.cursosFueraPid}</td>
+          <td>${g.cursosFinalizados}/${g.cursosAsignados}</td>
+          <td>${fmtPct(g.pctCursos)}</td>
+          <td>${fmtPct(g.pctGeneral)}</td>
+          <td><span class="badge ${st.cls}">${st.label}</span></td>
+        </tr>`;
+      }
+      return `<tr>
+        <td>${escapeHtml(g.name)}</td>
+        <td>${escapeHtml(g.email)}</td>
+        <td>${escapeHtml(g.division)}</td>
+        <td>${g.actividadesCompletadas}/${g.actividadesAsignadas}</td>
+        <td>${fmtPct(g.pctActividades)}</td>
+        <td>${g.cursosFinalizados}/${g.cursosAsignados}</td>
+        <td>${fmtPct(g.pctCursos)}</td>
+        <td>${fmtPct(g.pctGeneral)}</td>
+        <td><span class="badge ${st.cls}">${st.label}</span></td>
+      </tr>`;
+    }).join('');
+    return `
+    <div class="page">
+      ${pageHeader("Análisis individual por colaborador")}
+      <div class="sec-title">Análisis individual por colaborador</div>
+      <div class="sec-sub">${idx===0 ? "Detalle ejecutivo del avance de cada colaborador dentro del PID." : "Continuación del detalle por colaborador."}</div>
+      <table class="report-table colab-table${m.hasCursoSplit ? ' split' : ''}">
+        <thead><tr>${headerRow}</tr></thead>
+        <tbody>${trs}</tbody>
+      </table>
+      ${idx===0 ? `<div class="legend-row">
+        <div class="legend-item"><div class="legend-dot" style="background:#9CA3AF"></div>Sin avance</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#E0483C"></div>Bajo</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#F5A623"></div>Medio</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3B82C4"></div>Alto</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2FA85C"></div>Completado</div>
+      </div>` : ''}
+      ${pageFooter(startPageNum+idx)}
+    </div>`;
+  });
+}
+
+function buildCursosListPages(m, startPageNum){
+  // Con desglose PID/adicionales cada tarjeta ocupa más espacio: menos por página
+  const perPage = m.hasCursoSplit ? 3 : 4;
+  const chunks = chunk(m.groups, perPage);
+  return chunks.map((rows, idx)=>{
+    const cards = rows.map(g=>{
+      if(g.tieneCursoSplit){
+        const pidHtml = g.cursosPidListaArr.length
+          ? g.cursosPidListaArr.map(c=>`<span>${escapeHtml(c)}</span>`).join('')
+          : `<span style="background:#fff;color:var(--muted);">Sin cursos del PID asignados</span>`;
+        const fueraHtml = g.cursosFueraPidListaArr.length
+          ? g.cursosFueraPidListaArr.map(c=>`<span>${escapeHtml(c)}</span>`).join('')
+          : `<span style="background:#fff;color:var(--muted);">Sin cursos adicionales asignados</span>`;
+        return `
+        <div class="course-card">
+          <div class="cc-name">${escapeHtml(g.name)}</div>
+          <div class="cc-meta">${escapeHtml(g.email)} · ${escapeHtml(g.division)} · ${escapeHtml(g.job)}</div>
+          <div style="font-size:10px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">Cursos del PID</div>
+          <div class="cc-list">${pidHtml}</div>
+          <div style="font-size:10px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.3px;margin:10px 0 4px;">Cursos adicionales</div>
+          <div class="cc-list">${fueraHtml}</div>
+          <div class="cc-footer">
+            <span>PID: ${g.cursosPidFinalizados}/${g.cursosPid}</span>
+            <span>Adicionales: ${g.cursosFueraPidFinalizados}/${g.cursosFueraPid}</span>
+            <span style="color:${PRIMARY}">Total: ${g.cursosFinalizados}/${g.cursosAsignados} · ${fmtPct(g.pctCursos)}</span>
+          </div>
+        </div>`;
+      }
+      // Fallback: colaborador sin desglose disponible (comportamiento original)
+      const listaHtml = g.cursosListaArr.length
+        ? g.cursosListaArr.map(c=>`<span>${escapeHtml(c)}</span>`).join('')
+        : `<span style="background:#fff;color:var(--muted);">Sin cursos asignados</span>`;
+      return `
+      <div class="course-card">
+        <div class="cc-name">${escapeHtml(g.name)}</div>
+        <div class="cc-meta">${escapeHtml(g.email)} · ${escapeHtml(g.division)} · ${escapeHtml(g.job)}</div>
+        <div class="cc-list">${listaHtml}</div>
+        <div class="cc-footer">
+          <span>Asignados: ${g.cursosAsignados}</span>
+          <span>Finalizados: ${g.cursosFinalizados}</span>
+          <span style="color:${PRIMARY}">% avance: ${fmtPct(g.pctCursos)}</span>
+        </div>
+      </div>`;
+    }).join('');
+    return `
+    <div class="page">
+      ${pageHeader("Cursos asignados por colaborador")}
+      <div class="sec-title">Listado de cursos asignados por colaborador</div>
+      <div class="sec-sub">${idx===0 ? (m.hasCursoSplit ? "Detalle de la ruta de formación asignada a cada colaborador, incluyendo cursos del PID y cursos adicionales." : "Detalle de la ruta de formación asignada a cada colaborador.") : "Continuación del listado de cursos por colaborador."}</div>
+      ${cards}
+      ${pageFooter(startPageNum+idx)}
+    </div>`;
+  });
+}
+
+function buildDivisionPage(m, pageNum){
+  const headerRow = m.hasCursoSplit
+    ? `<th>División</th><th># Colab.</th><th>Activ. comp/asig</th><th>Cursos PID fin/asig</th><th>Cursos adicionales fin/asig</th><th>Cursos totales fin/asig</th><th>% General</th>`
+    : `<th>División</th><th># Colab.</th><th>Activ. comp/asig</th><th>% Activ.</th><th>Cursos fin/asig</th><th>% Cursos</th><th>% PID</th>`;
+  const trs = m.divisionStats.map(d=>{
+    if(m.hasCursoSplit){
+      return `<tr>
+        <td>${escapeHtml(d.division)}</td>
+        <td>${d.colaboradores}</td>
+        <td>${d.actComp}/${d.actAsig}</td>
+        <td>${d.cursPidFin}/${d.cursPidAsig}</td>
+        <td>${d.cursFueraFin}/${d.cursFueraAsig}</td>
+        <td>${d.cursFin}/${d.cursAsig}</td>
+        <td>${fmtPct(d.pctGeneral)}</td>
+      </tr>`;
+    }
+    return `<tr>
+      <td>${escapeHtml(d.division)}</td>
+      <td>${d.colaboradores}</td>
+      <td>${d.actComp}/${d.actAsig}</td>
+      <td>${fmtPct(d.pctAct)}</td>
+      <td>${d.cursFin}/${d.cursAsig}</td>
+      <td>${fmtPct(d.pctCurs)}</td>
+      <td>${fmtPct(d.pctGeneral)}</td>
+    </tr>`;
+  }).join('');
+  return `
+  <div class="page">
+    ${pageHeader("Análisis por área o división")}
+    <div class="sec-title">Análisis por área o división</div>
+    <div class="sec-sub">Comparativo de avance entre las distintas áreas de la organización.</div>
+    <table class="report-table">
+      <thead><tr>${headerRow}</tr></thead>
+      <tbody>${trs}</tbody>
+    </table>
+    <div class="chart-box" style="width:100%;height:260px;margin-top:26px;"><canvas id="chartDivision"></canvas></div>
+    ${pageFooter(pageNum)}
+  </div>`;
+}
+
+function buildEjecutivoPage(m, pageNum){
+  const recos = recomendaciones(m).map((r,i)=>`<li><div class="rn">${i+1}</div><div>${r}</div></li>`).join('');
+  return `
+  <div class="page">
+    ${pageHeader("Análisis ejecutivo y recomendaciones")}
+    <div class="sec-title">Análisis ejecutivo</div>
+    <div class="sec-sub">Lectura general del ciclo de avance del PID.</div>
+    <div class="analysis-box" style="margin-bottom:30px;">
+      <span class="ab-tag">Resumen para el cliente</span>
+      ${analisisEjecutivo(m)}
+    </div>
+    <div class="sec-title" style="font-size:18px;">Recomendaciones</div>
+    <div class="sec-sub">Acciones concretas para impulsar el cierre del ciclo.</div>
+    <ul class="reco-list">${recos}</ul>
+    ${pageFooter(pageNum)}
+  </div>`;
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+============================================================ */
+let chartInstances = [];
+function destroyCharts(){ chartInstances.forEach(c=>c.destroy()); chartInstances = []; }
+
+function makeDonut(canvasId, pct, color){
+  const el = document.getElementById(canvasId);
+  if(!el) return;
+  const ctx = el.getContext('2d');
+  const c = new Chart(ctx, {
+    type:'doughnut',
+    data:{ datasets:[{ data:[Math.max(pct,0.002)*100, Math.max(1-pct,0)*100], backgroundColor:[color,'#E9E6F2'], borderWidth:0 }] },
+    options:{ cutout:'72%', plugins:{legend:{display:false}, tooltip:{enabled:false}}, animation:false, responsive:false }
+  });
+  chartInstances.push(c);
+}
+
+function makeDivisionChart(m){
+  const el = document.getElementById('chartDivision');
+  if(!el) return;
+  const ctx = el.getContext('2d');
+  const c = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: m.divisionStats.map(d=>d.division),
+      datasets:[{ label:'% Avance general', data: m.divisionStats.map(d=>Math.round(d.pctGeneral*100)), backgroundColor: PRIMARY, borderRadius:6, maxBarThickness:40 }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:false,
+      plugins:{legend:{display:false}},
+      scales:{ y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%'} }, x:{ ticks:{font:{size:10}} } }
+    }
+  });
+  chartInstances.push(c);
+}
+
+function renderReport(){
+  destroyCharts();
+  let pages = [];
+  pages.push(buildCoverPage());
+  pages.push(buildValidationPage(METRICS, 2));
+  pages.push(buildResultadoGeneralPage(METRICS, 3));
+  pages.push(buildAvanceActividadesPage(METRICS, 4));
+  pages.push(buildAvanceCursosPage(METRICS, 5));
+  pages.push(buildDivisionPage(METRICS, 6));
+  const colabPages = buildColaboradoresPages(METRICS, 7);
+  pages = pages.concat(colabPages);
+  const cursoPages = buildCursosListPages(METRICS, 7+colabPages.length);
+  pages = pages.concat(cursoPages);
+  pages.push(buildEjecutivoPage(METRICS, 7+colabPages.length+cursoPages.length));
+
+  document.getElementById('reportContainer').innerHTML = pages.join('\n');
+
+  // render charts after DOM insert
+  requestAnimationFrame(()=>{
+    makeDonut('chartGeneral', METRICS.pctGeneral, PRIMARY);
+    makeDonut('chartActividades', METRICS.pctActividades, PRIMARY);
+    makeDonut('chartCursos', METRICS.pctCursos, PRIMARY_LIGHT);
+    makeDivisionChart(METRICS);
+  });
+
+  document.getElementById('toolbarClientName').textContent = CLIENT_NAME + " — Reporte de avance PID";
+  if(LOGO_DATAURL){
+    document.getElementById('toolbarLogo').src = LOGO_DATAURL;
+    document.getElementById('toolbarLogoChip').style.display='inline-flex';
+  }
+}
+
+/* ============================================================
+   NAVEGACIÓN ENTRE PANTALLAS
+============================================================ */
+document.getElementById('btnGenerate').addEventListener('click', ()=>{
+  CLIENT_NAME = inpClientName.value.trim() || "Cliente";
+  PRIMARY = inpColorHex.value.trim();
+  PRIMARY_LIGHT = shade(PRIMARY, 0.28);
+  document.documentElement.style.setProperty('--primary', PRIMARY);
+  document.documentElement.style.setProperty('--primary-light', PRIMARY_LIGHT);
+  const d = inpDate.value ? new Date(inpDate.value+"T00:00:00") : new Date();
+  REPORT_DATE = fmtDateLong(d);
+
+  METRICS = computeMetrics(RAW_ROWS);
+
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('toolbar').style.display = 'flex';
+  renderReport();
+  window.scrollTo(0,0);
+});
+
+document.getElementById('btnBack').addEventListener('click', ()=>{
+  document.getElementById('setupScreen').style.display = 'block';
+  document.getElementById('toolbar').style.display = 'none';
+  document.getElementById('reportContainer').innerHTML = '';
+  destroyCharts();
+  window.scrollTo(0,0);
+});
+
+/* ============================================================
+   GENERACIÓN DE PDF
+============================================================ */
+document.getElementById('btnDownload').addEventListener('click', async ()=>{
+  const progress = document.getElementById('pdfProgress');
+  const progressTxt = document.getElementById('pdfProgressTxt');
+  const btnDownload = document.getElementById('btnDownload');
+  progress.style.display='flex';
+  btnDownload.disabled = true;
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit:'px', format:[794,1123], hotfixes:['px_scaling'] });
+  const pages = document.querySelectorAll('#reportContainer .page');
+
+  for(let i=0;i<pages.length;i++){
+    progressTxt.textContent = `Generando página ${i+1} de ${pages.length}...`;
+    await new Promise(r=>setTimeout(r,30));
+    const canvas = await html2canvas(pages[i], { scale:2, useCORS:true, backgroundColor:'#ffffff' });
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    if(i>0) pdf.addPage([794,1123]);
+    pdf.addImage(imgData, 'JPEG', 0, 0, 794, 1123);
+  }
+
+  const filename = `Reporte_Avance_PID_${(CLIENT_NAME||'cliente').replace(/[^a-zA-Z0-9]+/g,'_')}_${new Date().toISOString().slice(0,10)}.pdf`;
+  pdf.save(filename);
+
+  progress.style.display='none';
+  btnDownload.disabled = false;
+});
+</script>
+</body>
+</html>

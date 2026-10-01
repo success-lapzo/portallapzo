@@ -1,0 +1,700 @@
+/* ============================================================================
+   CENTRO DE REPORTES · hoja de estilo del portal
+   ----------------------------------------------------------------------------
+   Estos estilos aplican ÚNICAMENTE a la interfaz del Centro de Reportes.
+   Los artefactos se abren dentro de un <iframe> o en pestaña nueva, por lo que
+   quedan completamente aislados: nada de este CSS los alcanza.
+
+   Índice
+     1. Tokens
+     2. Base y accesibilidad
+     3. Sidebar
+     4. Layout principal
+     5. Portada: buscador e indicadores
+     6. Tarjetas de reporte
+     7. Controles: filtros y orden
+     8. Agrupaciones: clientes, categorías, módulos
+     9. Visor de reportes (modal)
+    10. Estados vacíos
+    11. Responsive
+   ============================================================================ */
+
+/* --- 1. Tokens ------------------------------------------------------------ */
+:root {
+  --canvas: #f7f5fc;
+  --surface: #ffffff;
+  --ink: #1d1633;
+  --ink-soft: #453d5e;
+  --muted: #6c6683;
+  --line: #e7e2f2;
+  --line-strong: #d6cee9;
+
+  --purple: #8b55fe;
+  --purple-soft: #f1eaff;
+  --mint: #01da8c;
+  --mint-soft: #e2fbf1;
+  --pink: #f3538e;
+  --pink-soft: #ffe9f1;
+  --amber: #f59b3c;
+  --teal: #279fb5;
+  --blue: #3f6fd6;
+
+  --radius-s: 8px;
+  --radius-m: 12px;
+  --radius-l: 18px;
+  --shadow-sm: 0 1px 2px rgba(29, 22, 51, .05);
+  --shadow-md: 0 4px 16px rgba(29, 22, 51, .07);
+  --shadow-lg: 0 24px 64px rgba(29, 22, 51, .18);
+
+  --sidebar-w: 264px;
+  --font: "Poppins", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Color por módulo: el color codifica a qué solución pertenece el reporte,
+   no es decoración. Se aplica al lomo de la tarjeta y al punto de la lista. */
+/* El valor por defecto va primero: cualquier módulo nuevo que se registre en el
+   catálogo recibe el color neutro hasta que se le asigne uno aquí. */
+[data-mod]                               { --mod: var(--line-strong); }
+[data-mod="Evaluaciones y Clima"]        { --mod: var(--purple); }
+[data-mod="Capacitación y Aprendizaje"]  { --mod: var(--mint); }
+[data-mod="Desarrollo por Competencias"] { --mod: var(--pink); }
+[data-mod="Activación"]                  { --mod: var(--amber); }
+[data-mod="Comercial y TaaS"]            { --mod: var(--teal); }
+[data-mod="Customer Success"]            { --mod: var(--blue); }
+
+/* --- 2. Base y accesibilidad --------------------------------------------- */
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
+h1 { font-size: 2.4rem; line-height: 1.12; letter-spacing: -.03em; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1rem; }
+p  { margin: 0; }
+a  { color: inherit; text-decoration: none; }
+
+button { font-family: inherit; font-size: inherit; cursor: pointer; }
+
+/* Los iconos son SVG en línea; el tamaño se define una sola vez. */
+svg.ic { width: 16px; height: 16px; flex: none; }
+.card-top .star svg.ic { width: 14px; height: 14px; }
+.group .arrow svg.ic { width: 18px; height: 18px; }
+
+:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* El contenedor de la vista recibe el foco al cambiar de ruta (para lectores de
+   pantalla), pero no debe dibujar un contorno alrededor de toda la página. */
+.view:focus, .view:focus-visible { outline: none; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* --- 3. Sidebar ---------------------------------------------------------- */
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 24px 22px 20px;
+}
+
+.brand-mark {
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  background: var(--purple);
+  color: #fff;
+  display: grid; place-items: center;
+  font-weight: 700; font-size: 15px;
+  flex: none;
+}
+
+.brand-text { display: flex; flex-direction: column; line-height: 1.2; }
+.brand-text strong { font-size: 14.5px; font-weight: 600; }
+.brand-text span { font-size: 11.5px; color: var(--muted); }
+
+/* Barra del Portal Lapzo dentro del sidebar. Solo posiciona: la apariencia de
+   sus elementos la define shared/js/guard.js. */
+.portal-bar {
+  padding: 0 16px 14px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.portal-bar:empty { display: none; }
+
+.nav { flex: 1; overflow-y: auto; padding: 10px 12px 24px; }
+
+.nav-group { margin-top: 20px; }
+
+.nav-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0 10px 8px;
+  letter-spacing: .04em;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  background: none;
+  border-radius: var(--radius-s);
+  color: var(--ink-soft);
+  font-size: 14px;
+  text-align: left;
+  transition: background .14s ease, color .14s ease;
+}
+
+.nav-item:hover { background: var(--canvas); color: var(--ink); }
+
+.nav-item[aria-current="page"] {
+  background: var(--purple-soft);
+  color: #59239f;
+  font-weight: 500;
+}
+
+.nav-item .ic { flex: none; width: 17px; height: 17px; opacity: .75; }
+.nav-item[aria-current="page"] .ic { opacity: 1; }
+.nav-count { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+
+.sidebar-foot {
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* --- 4. Layout principal ------------------------------------------------- */
+.main { margin-left: var(--sidebar-w); min-height: 100vh; }
+
+.topbar {
+  display: none;
+  position: sticky; top: 0;
+  z-index: 30;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(247, 245, 252, .92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.icon-btn {
+  display: grid; place-items: center;
+  width: 38px; height: 38px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius-s);
+  color: var(--ink);
+}
+
+.view { max-width: 1160px; padding: 44px 44px 88px; margin: 0 auto; }
+
+.view-head { margin-bottom: 26px; }
+.view-head p { color: var(--muted); margin-top: 6px; max-width: 62ch; }
+
+.section { margin-top: 46px; }
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.section-head h2 { font-size: 1.08rem; }
+.section-head .hint { font-size: 13px; color: var(--muted); }
+
+.link-more {
+  font-size: 13px;
+  color: var(--purple);
+  font-weight: 500;
+  border: 0; background: none; padding: 0;
+}
+.link-more:hover { text-decoration: underline; }
+
+/* --- 5. Portada: buscador e indicadores ---------------------------------- */
+.hero { padding-top: 8px; }
+.hero h1 { max-width: 20ch; }
+.hero .lede {
+  margin-top: 12px;
+  font-size: 1.02rem;
+  color: var(--muted);
+  max-width: 52ch;
+}
+
+.searchbox {
+  position: relative;
+  margin-top: 30px;
+  max-width: 680px;
+}
+
+.searchbox svg {
+  position: absolute;
+  left: 18px; top: 50%;
+  transform: translateY(-50%);
+  width: 19px; height: 19px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.searchbox input {
+  width: 100%;
+  padding: 17px 108px 17px 50px;
+  font-family: inherit;
+  font-size: 15.5px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.searchbox input::placeholder { color: #948ea9; }
+
+.searchbox input:focus {
+  outline: none;
+  border-color: var(--purple);
+  box-shadow: 0 0 0 4px rgba(139, 85, 254, .13);
+}
+
+.searchbox .clear {
+  position: absolute; right: 10px; top: 50%;
+  transform: translateY(-50%);
+  border: 0; background: var(--canvas);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 7px 11px;
+  font-size: 12.5px;
+}
+.searchbox .clear:hover { color: var(--ink); }
+
+/* Indicadores: un solo panel dividido, no cuatro tarjetas sueltas */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 34px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+}
+
+.metric { padding: 20px 24px; border-left: 1px solid var(--line); }
+.metric:first-child { border-left: 0; }
+.metric .n {
+  font-size: 1.9rem;
+  font-weight: 600;
+  letter-spacing: -.03em;
+  line-height: 1.1;
+}
+.metric .l { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+/* --- 6. Tarjetas de reporte ---------------------------------------------- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(322px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 22px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+/* Lomo de color = módulo al que pertenece el reporte */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--mod);
+}
+
+.card:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mod); flex: none; }
+.card-top .sep { opacity: .5; }
+.card-top .star { margin-left: auto; color: var(--amber); display: inline-flex; }
+.card-top .star svg { fill: currentColor; }
+
+.card h3 {
+  font-size: 15.5px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.card .desc {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.tag {
+  font-size: 11px;
+  color: var(--ink-soft);
+  background: var(--canvas);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: var(--radius-s);
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background .14s ease, border-color .14s ease, color .14s ease;
+}
+
+.btn-primary { background: var(--purple); color: #fff; }
+.btn-primary:hover { background: #7a45ea; }
+
+.btn-ghost { background: var(--surface); border-color: var(--line-strong); color: var(--ink-soft); }
+.btn-ghost:hover { background: var(--canvas); color: var(--ink); }
+
+.card-foot .date { margin-left: auto; font-size: 12px; color: var(--muted); }
+
+/* Aviso breve dentro de la tarjeta: sólo aparece si el reporte tiene una
+   limitación real registrada en el campo "nota" del catálogo. */
+.offline-note {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #8a5200;
+  background: #fff6e6;
+  border: 1px solid #ffe0ab;
+  border-left: 3px solid #f0b357;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+/* --- 7. Controles: filtros y orden --------------------------------------- */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  margin-bottom: 20px;
+}
+
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field label { font-size: 11.5px; color: var(--muted); }
+
+.field select, .field input[type="search"] {
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  padding: 8px 10px;
+  min-width: 148px;
+  max-width: 210px;
+}
+
+.field select:focus, .field input:focus { outline: none; border-color: var(--purple); }
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  padding-bottom: 8px;
+}
+.check input { accent-color: var(--purple); width: 15px; height: 15px; }
+
+.controls .reset { margin-left: auto; padding-bottom: 6px; }
+
+.result-line {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 12px;
+  font-size: 13px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--ink-soft);
+}
+.chip:hover { border-color: var(--purple); color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--purple); border-color: var(--purple); color: #fff; }
+.chip .c { font-size: 11.5px; opacity: .7; }
+
+/* --- 8. Agrupaciones ----------------------------------------------------- */
+.groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  gap: 14px;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 18px 20px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.group:hover { border-color: var(--line-strong); box-shadow: var(--shadow-md); }
+
+.group .avatar {
+  width: 42px; height: 42px; flex: none;
+  border-radius: 11px;
+  display: grid; place-items: center;
+  font-weight: 600; font-size: 14px;
+  color: #fff;
+  background: var(--mod);
+}
+.group .avatar.neutral { background: var(--purple); }
+
+.group .g-body { display: flex; flex-direction: column; min-width: 0; }
+.group .g-name { font-weight: 500; font-size: 14.5px; }
+.group .g-meta { font-size: 12.5px; color: var(--muted); }
+.group .arrow { margin-left: auto; color: var(--muted); }
+
+/* --- 9. Visor de reportes (modal) ---------------------------------------- */
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+  padding: 22px;
+  background: rgba(19, 14, 34, .55);
+  backdrop-filter: blur(3px);
+}
+.viewer[data-viewer-open="true"] { display: block; }
+
+.viewer-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--surface);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.viewer-bar .meta { min-width: 0; }
+.viewer-bar .meta strong { display: block; font-size: 14.5px; font-weight: 600; }
+.viewer-bar .meta span {
+  display: block; font-size: 12px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.viewer-bar .actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+.viewer-frame { flex: 1; position: relative; background: #fff; }
+.viewer-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+.viewer-fallback {
+  position: absolute; inset: 0;
+  display: none;
+  place-content: center;
+  text-align: center;
+  padding: 40px;
+  background: var(--canvas);
+}
+.viewer-fallback[data-show="true"] { display: grid; }
+.viewer-fallback h3 { font-size: 1.05rem; margin-bottom: 8px; }
+.viewer-fallback p { color: var(--muted); font-size: 13.5px; max-width: 46ch; margin: 0 auto 18px; }
+
+/* --- 10. Estados vacíos -------------------------------------------------- */
+.empty {
+  padding: 62px 24px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-m);
+}
+.empty h3 { font-size: 1rem; margin-bottom: 6px; }
+.empty p { color: var(--muted); font-size: 13.5px; max-width: 42ch; margin: 0 auto; }
+
+/* Bloque de documentación (vista Acerca del Hub) */
+.prose { max-width: 68ch; }
+.prose h3 { margin: 30px 0 8px; }
+.prose p, .prose li { color: var(--ink-soft); font-size: 14px; }
+.prose ol, .prose ul { padding-left: 20px; margin: 8px 0; }
+.prose li { margin: 5px 0; }
+.prose code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  background: var(--purple-soft);
+  border-radius: 5px;
+  padding: 2px 6px;
+}
+.prose .panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 20px 22px;
+  margin-top: 18px;
+}
+
+
+/* Aviso del portal en la portada (solo lo ve un superadmin) */
+.sb-aviso {
+  margin-top: 34px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #8a5200;
+  background: #fff6e6;
+  border: 1px solid #ffe0ab;
+  border-left: 3px solid #f0b357;
+  border-radius: var(--radius-s);
+}
+.sb-aviso code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  background: rgba(255,255,255,.7);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* --- 11. Responsive ------------------------------------------------------ */
+.backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(19, 14, 34, .4);
+  z-index: 35;
+}
+
+@media (max-width: 1080px) {
+  .view { padding: 36px 30px 80px; }
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform .2s ease;
+    box-shadow: var(--shadow-lg);
+  }
+  body[data-menu="open"] .sidebar { transform: none; }
+  body[data-menu="open"] .backdrop { display: block; }
+  .main { margin-left: 0; }
+  .topbar { display: flex; }
+  .view { padding: 24px 20px 72px; }
+  h1 { font-size: 1.85rem; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .metric:nth-child(3) { border-left: 0; }
+  .metric:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .viewer { padding: 0; }
+  .viewer-shell { border-radius: 0; }
+}
+
+@media (max-width: 600px) {
+  .cards { grid-template-columns: 1fr; }
+  .searchbox input { padding: 15px 16px 15px 46px; font-size: 15px; }
+  .searchbox .clear { display: none; }
+  .controls { padding: 14px; }
+  .field, .field select { width: 100%; max-width: none; }
+  .controls .reset { margin-left: 0; }
+  .metrics { grid-template-columns: 1fr; }
+  .metric { border-left: 0; }
+  .metric + .metric { border-top: 1px solid var(--line); }
+  .viewer-bar .meta span { display: none; }
+}

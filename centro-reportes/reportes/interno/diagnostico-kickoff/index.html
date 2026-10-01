@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Diagnóstico de Inicio — lapzo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --v:#8B55FE;--v-dark:#240C50;--v-light:#F3EEFF;--v-mid:#6B3FCC;
+  --teal:#04949D;--teal-light:#E6F7F8;
+  --green:#1E7E34;--green-light:#E8F5E9;
+  --yellow:#B45309;--yellow-light:#FFFDE7;
+  --red:#CC0000;--red-light:#FFEBEE;
+  --grey:#F5F5F7;--border:#E2E2EB;
+  --text:#1B0E40;--text-2:#5A5A70;--text-3:#94A3B8;
+  --white:#fff;--radius:14px;--radius-sm:9px;
+  --shadow:0 2px 16px rgba(139,85,254,.10);
+  font-family:'Poppins',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:#F7F5FF;min-height:100vh;color:var(--text)}
+
+.app-header{background:var(--v-dark);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:32px;height:32px;background:var(--v);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;}
+.logo-text{font-weight:700;font-size:16px;color:#fff;}
+.header-tag{font-size:12px;color:rgba(255,255,255,.5);font-weight:500}
+
+.page-wrap{max-width:800px;margin:0 auto;padding:32px 20px 100px}
+
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:28px 30px;margin-bottom:20px;}
+.card-hero{background:linear-gradient(135deg,var(--v-dark) 0%,#3D1080 100%);color:#fff;border-radius:var(--radius);padding:32px 36px;margin-bottom:24px;position:relative;overflow:hidden;}
+.card-hero::after{content:'';position:absolute;top:-40px;right:-40px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(139,85,254,.3),transparent 70%);pointer-events:none;}
+.hero-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:6px}
+.hero-title{font-size:24px;font-weight:800;color:#fff;margin-bottom:6px}
+.hero-sub{font-size:13.5px;color:rgba(255,255,255,.65);line-height:1.55;max-width:540px}
+
+.section-header{display:flex;align-items:center;gap:12px;background:var(--v-dark);color:#fff;padding:12px 20px;border-radius:var(--radius-sm);margin-bottom:20px;}
+.section-num{width:28px;height:28px;background:var(--v);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+.section-title{font-size:14px;font-weight:700;}
+.section-sub{font-size:11.5px;opacity:.65;margin-top:1px}
+
+.mod-banner{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:var(--radius-sm);margin-bottom:20px;}
+.mod-tag{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;}
+.mod-name{font-size:15px;font-weight:700}
+.mod-meta{font-size:11.5px;margin-top:2px;opacity:.75}
+
+.field{margin-bottom:20px}
+.field-label{display:flex;align-items:flex-start;gap:6px;font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:6px;}
+.field-num{min-width:22px;height:22px;background:var(--v);color:#fff;border-radius:6px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.field-hint{font-size:12px;color:var(--text-3);display:block;margin-bottom:6px;margin-top:2px}
+input[type=text],input[type=date],input[type=number],textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-family:inherit;font-size:14px;color:var(--text);background:var(--white);transition:border-color .2s,box-shadow .2s;outline:none;resize:vertical;}
+input:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 3px rgba(139,85,254,.12);}
+textarea{min-height:76px;line-height:1.55}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:560px){.grid-2{grid-template-columns:1fr}}
+
+.check-grid,.radio-grid{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.check-item,.radio-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .2s,background .2s;user-select:none;}
+.check-item:hover,.radio-item:hover{border-color:#C9B5FF;background:#FAF7FF}
+.check-item.selected,.radio-item.selected{border-color:var(--v);background:var(--v-light)}
+.check-box{width:18px;height:18px;border:2px solid var(--border);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px;}
+.check-item.selected .check-box{background:var(--v);border-color:var(--v)}
+.check-box::after{content:'✓';font-size:11px;color:#fff;opacity:0;transition:opacity .15s}
+.check-item.selected .check-box::after{opacity:1}
+.radio-dot{width:18px;height:18px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.radio-item.selected .radio-dot{border-color:var(--v)}
+.radio-dot::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--v);opacity:0;transition:opacity .15s}
+.radio-item.selected .radio-dot::after{opacity:1}
+.check-label{font-size:13.5px;color:var(--text);line-height:1.4}
+
+.sema-grid{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.sema-btn{flex:1;min-width:120px;padding:12px 10px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;text-align:center;transition:all .2s;}
+.sema-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.sema-btn.sel-green{border-color:var(--green);background:var(--green-light)}
+.sema-btn.sel-yellow{border-color:var(--yellow);background:var(--yellow-light)}
+.sema-btn.sel-red{border-color:var(--red);background:var(--red-light)}
+.sema-icon{font-size:24px;margin-bottom:5px}
+.sema-text{font-size:11.5px;font-weight:600;color:var(--text)}
+
+.sema-row{display:flex;gap:10px;align-items:center;padding:10px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px}
+.sema-label{font-size:13px;font-weight:600;flex:1;color:var(--text)}
+
+.info-box{display:flex;gap:12px;padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:20px;border-left:4px solid;}
+.info-box.yellow{background:var(--yellow-light);border-color:var(--yellow)}
+.info-box.violet{background:var(--v-light);border-color:var(--v)}
+.info-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.info-text{font-size:13px;color:var(--text-2);line-height:1.55}
+
+.mod-selector{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media(max-width:500px){.mod-selector{grid-template-columns:1fr}}
+.mod-card{padding:14px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;user-select:none;}
+.mod-card:hover{border-color:#C9B5FF;background:#FAF7FF}
+.mod-card.active{border-color:var(--v);background:var(--v-light)}
+.mod-card input{display:none}
+.mc-top{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.mc-dot{width:26px;height:26px;border-radius:6px;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mc-title{font-size:13px;font-weight:700;color:var(--text)}
+.mc-desc{font-size:11.5px;color:var(--text-3);line-height:1.4}
+
+.mod-block{display:none}
+.mod-block.visible{display:block}
+
+.divider{height:1px;background:var(--border);margin:20px 0}
+.sub-label{font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px;display:block}
+
+/* ── Onboarding plan card ── */
+.plan-card{background:var(--v-light);border:1px solid #C9B5FF;border-radius:var(--radius-sm);padding:16px 18px;margin-top:8px}
+.plan-title{font-size:13px;font-weight:700;color:var(--v-dark);margin-bottom:12px}
+.plan-phase{margin-bottom:10px}
+.plan-phase-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.phase-badge{background:var(--v);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px}
+.phase-name{font-size:13px;font-weight:700;color:var(--text)}
+.phase-weeks{font-size:12px;color:var(--text-3);margin-left:auto}
+.phase-detail{font-size:12px;color:var(--text-2);line-height:1.55;padding-left:2px}
+.plan-empty{font-size:13px;color:var(--text-3);font-style:italic}
+
+/* ── Analysis section ── */
+.analysis-wrap{background:var(--white);border-radius:var(--radius);border:2px solid var(--v);box-shadow:0 4px 24px rgba(139,85,254,.12);padding:28px 30px;margin-bottom:20px;}
+.analysis-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.analysis-icon{font-size:28px}
+.analysis-title{font-size:18px;font-weight:800;color:var(--v-dark)}
+.analysis-sub{font-size:13px;color:var(--text-3);margin-top:2px}
+
+.rec-section{margin-bottom:22px}
+.rec-title{font-size:13px;font-weight:700;color:var(--v);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--v-light);padding-bottom:6px;margin-bottom:12px}
+.rec-body{font-size:13.5px;color:var(--text-2);line-height:1.65}
+.rec-body p{margin-bottom:8px}
+.rec-body ul{padding-left:16px}
+.rec-body li{margin-bottom:5px}
+
+.route-block{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:12px}
+.route-header{background:var(--grey);padding:10px 16px;display:flex;align-items:center;gap:8px}
+.route-badge{font-size:11px;font-weight:800;padding:3px 10px;border-radius:99px;color:#fff}
+.route-name{font-size:13.5px;font-weight:700;color:var(--text)}
+.route-body{padding:12px 16px;font-size:13px;color:var(--text-2);line-height:1.6}
+
+.alert-box{display:flex;gap:10px;padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:10px;border-left:3px solid}
+.alert-box.red{background:var(--red-light);border-color:var(--red)}
+.alert-box.yellow{background:var(--yellow-light);border-color:var(--yellow)}
+.alert-box.green{background:var(--green-light);border-color:var(--green)}
+.alert-icon{font-size:16px;flex-shrink:0}
+.alert-text{font-size:13px;color:var(--text-2);line-height:1.5}
+
+/* ── Action bar ── */
+.action-bar{position:sticky;bottom:0;background:var(--white);border-top:1px solid var(--border);padding:14px 24px;display:flex;gap:12px;justify-content:flex-end;z-index:50;}
+.btn{padding:11px 22px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,var(--v),var(--v-mid));color:#fff;box-shadow:0 2px 12px rgba(139,85,254,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(139,85,254,.4)}
+.btn-dark{background:var(--v-dark);color:#fff}
+.btn-dark:hover{background:#1a093a;transform:translateY(-1px)}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text-2)}
+.btn-ghost:hover{border-color:var(--v);color:var(--v)}
+
+.toast{position:fixed;bottom:80px;right:30px;background:var(--v-dark);color:#fff;padding:14px 20px;border-radius:10px;font-size:13.5px;font-weight:500;box-shadow:0 4px 24px rgba(0,0,0,.3);z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.error{background:#CC0000}
+
+/* ── Print ── */
+/* ── Dimension headers ── */
+.dim-header{display:flex;align-items:stretch;border-radius:var(--radius-sm);overflow:hidden;margin-bottom:24px}
+.dim-left{flex:1;padding:16px 20px;display:flex;flex-direction:column;justify-content:center}
+.dim-eyebrow{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;opacity:.7;margin-bottom:3px}
+.dim-title{font-size:18px;font-weight:800;margin-bottom:3px}
+.dim-sub{font-size:12px;opacity:.75;line-height:1.4}
+.dim-pct{width:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px}
+.dim-pct-num{font-size:26px;font-weight:800;line-height:1}
+.dim-pct-lbl{font-size:10px;opacity:.75;margin-top:2px}
+.dim1{background:linear-gradient(135deg,var(--v-dark),#3D1080);color:#fff}
+.dim1 .dim-pct{background:var(--v)}
+.dim2{background:linear-gradient(135deg,#2D1060,#5C3D8F);color:#fff}
+.dim2 .dim-pct{background:#5C3D8F}
+.dim3{background:linear-gradient(135deg,#004D52,#04949D);color:#fff}
+.dim3 .dim-pct{background:#04949D}
+.dim4{background:linear-gradient(135deg,#1a3a1a,#1E7E34);color:#fff}
+.dim4 .dim-pct{background:#1E7E34}
+
+/* ── Var blocks ── */
+.var-block{margin-bottom:4px}
+.var-tag{display:inline-flex;align-items:center;font-size:12px;font-weight:700;color:var(--v-dark);background:var(--v-light);padding:5px 12px;border-radius:6px;margin-bottom:16px;border:1px solid #C9B5FF}
+
+/* ── Objective groups ── */
+.obj-group{margin-bottom:14px}
+.obj-group-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.check-item.disabled{opacity:.45;pointer-events:none}
+
+/* ── Prereq table ── */
+.prereq-table{width:100%;border-collapse:collapse;font-size:13px}
+.prereq-table th{padding:9px 12px;background:var(--v-dark);color:#fff;font-size:11px;font-weight:700;border:1px solid #3D1080}
+.prereq-table td{padding:9px 12px;border:1px solid var(--border);vertical-align:middle}
+.prereq-table tr:nth-child(even) td{background:var(--grey)}
+.prereq-table tr:hover td{background:var(--v-light)}
+.prereq-radio{display:flex;justify-content:center;gap:6px}
+.prereq-radio label{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:2px solid var(--border);cursor:pointer;font-size:14px;transition:all .2s}
+.prereq-radio input{display:none}
+.prereq-radio input:checked + label.ok{border-color:var(--green);background:var(--green-light)}
+.prereq-radio input:checked + label.warn{border-color:var(--yellow);background:var(--yellow-light)}
+.prereq-radio input:checked + label.block{border-color:var(--red);background:var(--red-light)}
+.prereq-mod{font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px;color:#fff;margin-right:6px;vertical-align:middle}
+
+@media print{
+  .app-header,.action-bar,.no-print{display:none!important}
+  .page-wrap{padding:0;max-width:100%}
+  .card,.analysis-wrap{box-shadow:none;border:1px solid #ddd;break-inside:avoid;margin-bottom:14px;padding:20px}
+  body{background:#fff}
+  .mod-block{display:none!important}
+  .mod-block.visible{display:block!important}
+  .check-item.selected,.radio-item.selected{border-color:#8B55FE!important;background:#F3EEFF!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sema-btn.sel-green{border-color:#1E7E34!important;background:#E8F5E9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sema-btn.sel-yellow{border-color:#B45309!important;background:#FFFDE7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sema-btn.sel-red{border-color:#CC0000!important;background:#FFEBEE!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .section-header,.analysis-header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .plan-card{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .route-block,.alert-box{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-mark">L</div>
+    <span class="logo-text">lapzo</span>
+  </div>
+  <span class="header-tag">Diagnóstico de Inicio · Activación</span>
+</header>
+
+<main class="page-wrap">
+
+
+<!-- ═══ HERO ═══ -->
+<div class="card-hero">
+  <div class="hero-label">lapzo · Sesión de inicio</div>
+  <div class="hero-title">Diagnóstico de Kick-off</div>
+  <div class="hero-sub">Instrumento de activación — 4 dimensiones que alimentan el plan de implementación personalizado y el score de preparación en Vitally.</div>
+</div>
+
+<!-- ═══ DATOS GENERALES ═══ -->
+<div class="card">
+  <div class="section-header">
+    <div class="section-num">0</div>
+    <div><div class="section-title">Datos generales</div><div class="section-sub">Información del cliente y módulos contratados</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="field">
+      <label class="field-label">Nombre de la empresa</label>
+      <input type="text" id="f_cliente" placeholder="Ej. Grupo Rotoplas"/>
+    </div>
+    <div class="field">
+      <label class="field-label">Fecha de la sesión de inicio</label>
+      <input type="date" id="f_fecha"/>
+    </div>
+    <div class="field">
+      <label class="field-label">Activation Specialist</label>
+      <input type="text" id="f_as" placeholder="Nombre del AS"/>
+    </div>
+    <div class="field">
+      <label class="field-label">Contacto principal del cliente</label>
+      <input type="text" id="f_contacto" placeholder="Ej. Andrea Pulido, Gerente de DO"/>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="field" style="margin-bottom:4px">
+    <label class="field-label" style="font-size:14px;font-weight:700">Módulos contratados</label>
+    <span class="field-hint">Seleccione los módulos activos. Las secciones correspondientes aparecerán automáticamente.</span>
+  </div>
+  <div class="mod-selector no-print">
+    <label class="mod-card" id="mc_cya">
+      <input type="checkbox" id="mod_cya" onchange="updateModules()"/>
+      <div class="mc-top"><span class="mc-dot" style="background:#8B55FE">CyA</span><span class="mc-title">Capacitación y Aprendizaje</span></div>
+      <div class="mc-desc">LMS, cursos, rutas, catálogo de contenidos</div>
+    </label>
+    <label class="mod-card" id="mc_dxc">
+      <input type="checkbox" id="mod_dxc" onchange="updateModules()"/>
+      <div class="mc-top"><span class="mc-dot" style="background:#5C3D8F">DxC</span><span class="mc-title">Desarrollo por Competencias</span></div>
+      <div class="mc-desc">Matrices, diagnósticos, planes individuales</div>
+    </label>
+    <label class="mod-card" id="mc_eyc">
+      <input type="checkbox" id="mod_eyc" onchange="updateModules()"/>
+      <div class="mc-top"><span class="mc-dot" style="background:#04949D">EyC</span><span class="mc-title">Evaluaciones y Clima</span></div>
+      <div class="mc-desc">Evaluación 360°, encuestas, clima</div>
+    </label>
+    <label class="mod-card" id="mc_eye">
+      <input type="checkbox" id="mod_eye" onchange="updateModules()"/>
+      <div class="mc-top"><span class="mc-dot" style="background:#1E7E34">EyE</span><span class="mc-title">Estrategia y Ejecución</span></div>
+      <div class="mc-desc">OKRs, KPIs, check-ins de seguimiento</div>
+    </label>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DIMENSIÓN 1 — OBJETIVO DE NEGOCIO
+════════════════════════════════════════════════ -->
+<div class="card">
+  <div class="dim-header dim1">
+    <div class="dim-left">
+      <div class="dim-eyebrow">Dimensión 1</div>
+      <div class="dim-title">Objetivo de Negocio</div>
+      <div class="dim-sub">¿Para qué compraron Lapzo? · Define el roadmap y la secuencia de módulos</div>
+    </div>
+    <div class="dim-pct"><div class="dim-pct-num">30%</div><div class="dim-pct-lbl">del score final</div></div>
+  </div>
+
+  <div class="info-box violet" style="margin-bottom:20px">
+    <span class="info-icon">💡</span>
+    <span class="info-text"><strong>¿Por qué importa?</strong> Dos clientes con los mismos módulos pueden necesitar planes totalmente distintos. Empresa A (DxC + CyA): "Universidad corporativa" → secuencia diferente a Empresa B (DxC + CyA): "Profesionalizar mandos medios".</span>
+  </div>
+
+  <div class="field">
+    <label class="field-label">¿Cuáles son sus principales objetivos al contratar Lapzo? <span style="color:#CC0000">*</span></label>
+    <span class="field-hint">Seleccionen máximo 3 que mejor representen lo que buscan lograr.</span>
+
+    <div class="obj-group" style="margin-top:12px">
+      <div class="obj-group-label" style="color:#8B55FE">● Desarrollo de talento</div>
+      <div class="check-grid" id="chk_obj_dev"></div>
+    </div>
+    <div class="obj-group">
+      <div class="obj-group-label" style="color:#5C3D8F">● Capacitación</div>
+      <div class="check-grid" id="chk_obj_cap"></div>
+    </div>
+    <div class="obj-group">
+      <div class="obj-group-label" style="color:#04949D">● Desempeño</div>
+      <div class="check-grid" id="chk_obj_des"></div>
+    </div>
+    <div class="obj-group">
+      <div class="obj-group-label" style="color:#1E7E34">● Cultura</div>
+      <div class="check-grid" id="chk_obj_cul"></div>
+    </div>
+    <div id="obj-max-warn" style="display:none;margin-top:8px;padding:8px 12px;background:#FFEBEE;border-radius:8px;font-size:12.5px;color:#CC0000;font-weight:600">⚠️ Máximo 3 objetivos. Deselecciona uno antes de agregar otro.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="field">
+    <label class="field-label">¿Qué resultado concreto esperan ver a los 60 días de haber iniciado?</label>
+    <span class="field-hint">Este será el punto de referencia para medir el avance de la implementación.</span>
+    <textarea id="f_resultado_sponsor" placeholder="Ej. 100% de líderes con evaluación completada · Primer ciclo de OKRs activo con check-ins semanales"></textarea>
+  </div>
+  <div class="field">
+    <label class="field-label">¿Hay algo en su organización que pueda afectar el ritmo de la implementación?</label>
+    <span class="field-hint">Por ejemplo: restructuras en proceso, cierres de año, auditorías próximas, otros proyectos prioritarios…</span>
+    <textarea id="f_contexto_org" rows="2" placeholder="Ej. Auditoría STPS en agosto. Restructura de área comercial en proceso…"></textarea>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DIMENSIÓN 2 — MADUREZ ORGANIZACIONAL
+════════════════════════════════════════════════ -->
+<div class="card">
+  <div class="dim-header dim2">
+    <div class="dim-left">
+      <div class="dim-eyebrow">Dimensión 2</div>
+      <div class="dim-title">Madurez Organizacional</div>
+      <div class="dim-sub">5 variables que determinan el Índice de Preparación del cliente</div>
+    </div>
+    <div class="dim-pct"><div class="dim-pct-num">30%</div><div class="dim-pct-lbl">del score</div></div>
+  </div>
+
+  <!-- VAR 1: Gobernanza -->
+  <div class="var-block">
+    <div class="var-tag">Variable 1 — Gobernanza</div>
+    <div class="field">
+      <label class="field-label">¿Quién dentro de su organización está liderando y respaldando este proyecto? <span style="color:#CC0000">*</span></label>
+      <span class="field-hint">Esta persona será el principal aliado para que la implementación avance.</span>
+      <div class="radio-grid" id="radio_sponsor"></div>
+    </div>
+    <div class="field">
+      <label class="field-label">¿Cómo surgió la decisión de trabajar con Lapzo?</label>
+      <div class="radio-grid" id="radio_decision"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- VAR 2: Recursos -->
+  <div class="var-block">
+    <div class="var-tag">Variable 2 — Recursos humanos</div>
+    <div class="field">
+      <label class="field-label">¿Cuántas personas del equipo de RH / DO estarán administrando la plataforma? <span style="color:#CC0000">*</span></label>
+      <div class="radio-grid" id="radio_admins"></div>
+    </div>
+    <div class="field">
+      <label class="field-label">¿Quién será la persona responsable del día a día en la plataforma? ¿Ha trabajado antes con herramientas similares?</label>
+      <textarea id="f_admin_principal" rows="2" placeholder="Ej. Ana García, Coordinadora de Capacitación. Ha usado Moodle."></textarea>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- VAR 3: Tiempo -->
+  <div class="var-block">
+    <div class="var-tag">Variable 3 — Tiempo disponible</div>
+    <div class="field">
+      <label class="field-label">¿Cuántas horas a la semana podría dedicar su equipo a la configuración y arranque de la plataforma? <span style="color:#CC0000">*</span></label>
+      <span class="field-hint">Esto incluye sesiones con nuestro equipo, configuración propia y comunicación interna.</span>
+      <div class="radio-grid" id="radio_horas"></div>
+    </div>
+    <div class="field">
+      <label class="field-label">¿Con qué frecuencia podría su equipo tener sesiones de capacitación con nosotros?</label>
+      <span class="field-hint">Cada sesión dura 1 hora. Esto nos ayuda a definir el ritmo del proceso de onboarding.</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:6px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s" id="tier-btn-3" onclick="setTier(3)">
+          <span id="tier-dot-3" style="width:12px;height:12px;border-radius:50%;border:2px solid var(--border);transition:all .2s;flex-shrink:0"></span>
+          3 sesiones/sem <span style="font-size:11px;color:var(--text-3);font-weight:400;margin-left:4px">Intensivo</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s" id="tier-btn-2" onclick="setTier(2)">
+          <span id="tier-dot-2" style="width:12px;height:12px;border-radius:50%;border:2px solid var(--border);transition:all .2s;flex-shrink:0"></span>
+          2 sesiones/sem <span style="font-size:11px;color:var(--text-3);font-weight:400;margin-left:4px">Regular</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s" id="tier-btn-1" onclick="setTier(1)">
+          <span id="tier-dot-1" style="width:12px;height:12px;border-radius:50%;border:2px solid var(--border);transition:all .2s;flex-shrink:0"></span>
+          1 sesión/sem <span style="font-size:11px;color:var(--text-3);font-weight:400;margin-left:4px">Básico</span>
+        </label>
+      </div>
+      <input type="hidden" id="f_tier" value=""/>
+    </div>
+    <div class="field">
+      <label class="field-label">¿Qué días y horarios funcionan mejor para las sesiones?</label>
+      <input type="text" id="f_dias_horarios" placeholder="Ej. Martes y jueves de 10:00 a 11:00 am"/>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- VAR 4: Información de módulos -->
+  <div class="var-block">
+    <div class="var-tag">Variable 4 — Información de módulos</div>
+    <div class="info-box yellow">
+      <span class="info-icon">📋</span>
+      <span class="info-text">Esta variable se completa según los módulos contratados. Solo llena las secciones relevantes.</span>
+    </div>
+
+    <!-- DxC -->
+    <div class="mod-block" id="block-dxc-v4">
+      <div class="mod-banner" style="background:#EDE8FF;margin-bottom:16px">
+        <div class="mod-tag" style="background:#5C3D8F">DxC</div>
+        <div><div class="mod-name" style="color:#3D1B7A">Desarrollo por Competencias</div></div>
+      </div>
+      <div class="info-box yellow">
+        <span class="info-icon">⚠️</span>
+        <span class="info-text"><strong>Requisito previo:</strong> Este módulo requiere descriptivos de puesto documentados. Sin ellos, no es posible arrancar.</span>
+      </div>
+
+      <div class="field">
+        <label class="field-label"><span class="field-num">3.1</span> ¿Tienen descripciones de puesto documentadas en su organización?</label>
+        <div class="radio-grid" id="radio_dxc_desc"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">3.2</span> ¿Han definido las competencias que buscan en su equipo?</label>
+        <div class="radio-grid" id="radio_dxc_comp"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">3.3</span> ¿Cómo está estructurado actualmente (o se imaginan) su modelo de competencias?</label>
+    <span class="field-hint">Pueden seleccionar todas las que apliquen.</span>
+        <div class="check-grid" id="chk_dxc_modelo"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">3.4</span> ¿Con qué elementos cuentan hoy (o planean tener) para gestionar competencias en su organización?</label>
+        <span class="field-hint">Seleccionen todos los que apliquen.</span>
+        <div class="check-grid" id="chk_dxc_elementos"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">3.5</span> ¿Cómo imaginan que será su modelo de competencias dentro de Lapzo?</label>
+        <div class="radio-grid" id="radio_dxc_construccion"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">3.6</span> Al arrancar con este módulo, ¿qué les gustaría haber logrado en sus primeros 90 días?</label>
+        <span class="field-hint">Seleccionen todos los que apliquen.</span>
+        <div class="check-grid" id="chk_dxc_resultado90"></div>
+      </div>
+    </div>
+
+    <!-- EyE -->
+    <div class="mod-block" id="block-eye-v4">
+      <div class="divider"></div>
+      <div class="mod-banner" style="background:#E8F5E9;margin-bottom:16px">
+        <div class="mod-tag" style="background:#1E7E34">EyE</div>
+        <div><div class="mod-name" style="color:#145522">Estrategia y Ejecución / OKRs</div></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label"><span class="field-num">5.1</span> ¿Qué buscan lograr con la gestión de objetivos en su organización?</label>
+        <div class="check-grid" id="chk_eye_objetivo"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">5.2</span> ¿Actualmente utilizan alguna metodología para definir y dar seguimiento a sus objetivos?</label>
+        <div class="radio-grid" id="radio_eye_metodologia"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">5.3</span> ¿Tienen definidos los objetivos del próximo ciclo o periodo?</label>
+        <div class="radio-grid" id="radio_eye_objetivos"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">5.4</span> ¿Con qué frecuencia revisan el avance de sus objetivos hoy en día?</label>
+        <div class="radio-grid" id="radio_eye_frecuencia"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">5.5</span> Al arrancar con este módulo, ¿qué les gustaría haber logrado en sus primeros 90 días?</label>
+        <span class="field-hint">Seleccionen todos los que apliquen.</span>
+        <div class="check-grid" id="chk_eye_resultado90"></div>
+      </div>
+    </div>
+
+    <!-- CyA -->
+    <div class="mod-block" id="block-cya-v4">
+      <div class="divider"></div>
+      <div class="mod-banner" style="background:#F3EEFF;margin-bottom:16px">
+        <div class="mod-tag" style="background:#8B55FE">CyA</div>
+        <div><div class="mod-name" style="color:#5C1FCC">Capacitación y Aprendizaje</div>
+        <div class="mod-meta" style="color:#8B55FE">Meta: 20% de colaboradores inscritos en un curso a los 60 días</div></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label"><span class="field-num">2.1</span> ¿Cuál es su principal objetivo de capacitación al implementar Lapzo?</label>
+        <div class="radio-grid" id="radio_cya_objetivo"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">2.2</span> ¿Cómo gestionan hoy la capacitación en su organización?</label>
+        <div class="radio-grid" id="radio_cya_gestion"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">2.3</span> ¿Tienen contenidos o cursos que les gustaría incorporar a la plataforma?</label>
+        <div class="radio-grid" id="radio_cya_contenido"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">2.4</span> Cuéntennos un poco sobre esos materiales:</label>
+        <span class="field-hint">Por ejemplo: presentaciones, videos, manuales, en qué formato están y quién los tiene.</span>
+        <textarea id="f_cya_recursos" rows="2" placeholder="Ej. Presentaciones de inducción y videos de procedimientos en Drive…"></textarea>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">2.5</span> ¿Tienen un plan de capacitación definido para los próximos meses?</label>
+        <div class="radio-grid" id="radio_cya_plan"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">2.6</span> Al arrancar con este módulo, ¿qué les gustaría haber logrado en sus primeros 90 días?</label>
+        <span class="field-hint">Seleccionen todos los que apliquen.</span>
+        <div class="check-grid" id="chk_cya_resultado90"></div>
+      </div>
+    </div>
+
+    <!-- EyC -->
+    <div class="mod-block" id="block-eyc-v4">
+      <div class="divider"></div>
+      <div class="mod-banner" style="background:#E6F7F8;margin-bottom:16px">
+        <div class="mod-tag" style="background:#04949D">EyC</div>
+        <div><div class="mod-name" style="color:#046B72">Evaluaciones y Clima</div>
+        <div class="mod-meta" style="color:#04949D">Meta: 1 ciclo creado en los primeros 30 días · 5% con evaluación completada</div></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label"><span class="field-num">4.1</span> ¿Qué los llevó a querer implementar evaluaciones en su organización?</label>
+        <div class="radio-grid" id="radio_eyc_objetivo"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">4.2</span> ¿Cómo evalúan hoy el desempeño de su equipo?</label>
+        <div class="radio-grid" id="radio_eyc_tipo_actual"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">4.3</span> ¿Tienen previsto lanzar alguna evaluación o encuesta en los próximos 90 días?</label>
+        <div class="radio-grid" id="radio_eyc_urgencia"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">4.4</span> ¿Ya saben quiénes participarán, quiénes evaluarán y quién será responsable del proceso?</label>
+        <div class="radio-grid" id="radio_eyc_participantes"></div>
+      </div>
+      <div class="field">
+        <label class="field-label"><span class="field-num">4.5</span> Al arrancar con este módulo, ¿qué les gustaría haber logrado en sus primeros 90 días?</label>
+        <span class="field-hint">Seleccionen todos los que apliquen.</span>
+        <div class="check-grid" id="chk_eyc_resultado90"></div>
+      </div>
+    </div>
+  </div><!-- end var-block v4 -->
+
+  <div class="divider"></div>
+
+  <!-- VAR 5: Gestión del cambio -->
+  <div class="var-block">
+    <div class="var-tag">Variable 5 — Gestión del cambio</div>
+    <div class="field">
+      <label class="field-label">¿Cómo describirían la apertura de su organización ante herramientas y procesos nuevos? <span style="color:#CC0000">*</span></label>
+      <div class="radio-grid" id="radio_cambio"></div>
+    </div>
+    <div class="field">
+      <label class="field-label">¿Han trabajado antes con alguna plataforma de talento o LMS? ¿Cuál fue su experiencia?</label>
+      <textarea id="f_plataforma_previa" rows="2" placeholder="Ej. Usaban Cornerstone. La dejaron por falta de adopción y precio alto."></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label">¿Cómo suelen comunicar este tipo de proyectos e iniciativas a toda la organización?</label>
+      <span class="field-hint">Por ejemplo: correos de dirección, sesiones informativas, comunicados de RH…</span>
+      <div class="radio-grid" id="radio_comunicacion_iniciativas"></div>
+    </div>
+    <div class="field">
+      <label class="field-label">¿Cuál creen que será el mayor reto con su equipo al arrancar este proyecto?</label>
+      <div class="radio-grid" id="radio_reto_colaboradores"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Semáforo por módulo — referencia rápida del AS, el índice se calcula al generar análisis -->
+  <div id="sema-rows" style="display:none"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DIMENSIÓN 3 — URGENCIA ESTRATÉGICA
+════════════════════════════════════════════════ -->
+<div class="card">
+  <div class="dim-header dim3">
+    <div class="dim-left">
+      <div class="dim-eyebrow">Dimensión 3</div>
+      <div class="dim-title">Urgencia Estratégica</div>
+      <div class="dim-sub">Hitos o fechas que pueden definir el orden de arranque</div>
+    </div>
+    <div class="dim-pct"><div class="dim-pct-num">20%</div><div class="dim-pct-lbl">del score</div></div>
+  </div>
+
+  <div class="info-box" style="background:#E6F7F8;border-color:#04949D;margin-bottom:20px">
+    <span class="info-icon">⚡</span>
+    <span class="info-text">Saber si tienen fechas o eventos importantes nos ayuda a priorizar qué arrancar primero y diseñar el plan que mejor se adapte a su calendario.</span>
+  </div>
+
+  <div class="field">
+    <label class="field-label">¿Existe algún hito o momento crítico que deba ser prioritario en los próximos 90 días? <span style="color:#CC0000">*</span></label>
+    <div class="check-grid" id="chk_urgencia_tipo"></div>
+  </div>
+  <div class="field">
+    <label class="field-label">¿Cuál es la fecha específica?</label>
+    <span class="field-hint">Si hay más de una, indiquen la más importante o urgente.</span>
+    <input type="date" id="f_urgencia_fecha"/>
+  </div>
+  <div class="field">
+    <label class="field-label">¿Qué módulo o proceso de Lapzo está relacionado con ese hito? <span style="font-size:11px;color:var(--text-3);font-weight:400">(llena el AS)</span></label>
+    <div class="check-grid" id="chk_urgencia_modulo"></div>
+  </div>
+  <div class="field">
+    <label class="field-label">¿Esa fecha tiene margen de movimiento o es inamovible?</label>
+    <div class="radio-grid" id="radio_urgencia_flex"></div>
+  </div>
+  <div class="field">
+    <label class="field-label">¿Hay otros momentos importantes en su calendario organizacional que debamos considerar?</label>
+    <span class="field-hint">Por ejemplo: vacaciones colectivas, restructuras, aperturas de nuevas plantas, cierres de ciclo…</span>
+    <textarea id="f_urgencia_otros" rows="2" placeholder="Ej. Cierre de año: diciembre. Vacaciones colectivas: última semana de julio."></textarea>
+  </div>
+
+
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DIMENSIÓN 4 — PRERREQUISITOS
+════════════════════════════════════════════════ -->
+<div class="card">
+  <div class="dim-header dim4">
+    <div class="dim-left">
+      <div class="dim-eyebrow">Dimensión 4</div>
+      <div class="dim-title">Prerrequisitos</div>
+      <div class="dim-sub">Acuerdos y elementos que necesitamos resolver juntos antes de arrancar</div>
+    </div>
+    <div class="dim-pct"><div class="dim-pct-num">20%</div><div class="dim-pct-lbl">del score</div></div>
+  </div>
+
+  <div class="info-box violet" style="margin-bottom:20px">
+    <span class="info-icon">🔑</span>
+    <span class="info-text">Para que la implementación fluya bien, hay ciertos elementos que necesitamos tener listos. En esta sección revisamos juntos el estado de cada uno y acordamos cómo resolverlos.</span>
+  </div>
+
+  <span class="sub-label">Tabla de Prerrequisitos por Módulo</span>
+  <span class="field-hint" style="display:block;margin-bottom:12px">Revisen el estado actual de cada elemento. Si algo no está listo, lo definiremos juntos.</span>
+
+  <div style="overflow-x:auto">
+  <table class="prereq-table">
+    <thead>
+      <tr>
+        <th style="text-align:left;width:55%">Prerrequisito</th>
+        <th style="text-align:center;color:#1E7E34">✓ Listo</th>
+        <th style="text-align:center;color:#B45309">⚠️ Parcial</th>
+        <th style="text-align:center;color:#CC0000">✕ Bloqueado</th>
+      </tr>
+    </thead>
+    <tbody id="prereq-tbody">
+      <!-- populated by JS based on active modules -->
+    </tbody>
+  </table>
+  </div>
+
+  <div class="field" style="margin-top:20px">
+    <label class="field-label">Elementos que necesitamos resolver antes de arrancar</label>
+    <span class="field-hint">Estos son los puntos que identificamos como necesarios para poder arrancar bien.</span>
+    <textarea id="f_prereq_criticos" placeholder="Ej. Completar descriptivos de puesto · Definir responsables del proyecto · Alinear metodología de objetivos"></textarea>
+  </div>
+  <div class="field">
+    <label class="field-label">¿Qué elementos pueden resolver de su lado y en cuánto tiempo?</label>
+    <textarea id="f_prereq_autonomo" rows="2" placeholder="Ej. Descriptivos de puesto — RH tiene un borrador que puede completar en 2 semanas."></textarea>
+  </div>
+  <div class="field">
+    <label class="field-label">¿En qué elementos necesitan apoyo de nuestro equipo para avanzar?</label>
+    <span class="field-hint">LIA, sesiones de trabajo conjunto, plantillas, etc.</span>
+    <textarea id="f_prereq_lapzo" rows="2" placeholder="Ej. Diccionario de competencias — lo construiremos con LIA en la primera sesión de DxC."></textarea>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     RESUMEN DEL AS + PLAN DE ONBOARDING
+════════════════════════════════════════════════ -->
+<div class="card" style="border-color:#C9B5FF">
+  <div class="section-header" style="background:var(--v)">
+    <div class="section-num" style="background:rgba(255,255,255,.2)">AS</div>
+    <div><div class="section-title">Plan de onboarding estimado</div><div class="section-sub">Basado en los módulos seleccionados y el ritmo acordado</div></div>
+  </div>
+
+  <div id="plan-output">
+    <div class="plan-card"><p class="plan-empty">Completen el diagnóstico y seleccionen el ritmo de sesiones en la Dimensión 2 para ver el plan de onboarding estimado.</p></div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="field">
+    <label class="field-label">Acuerdo de éxito: ¿cómo sabremos que esto está funcionando?</label>
+    <textarea id="f_acuerdo_exito" placeholder="Ej. Al día 60 el cliente tendrá Capacitación activo con el 25% de sus colaboradores inscritos…"></textarea>
+  </div>
+  <div class="field">
+    <label class="field-label">Notas adicionales</label>
+    <textarea id="f_notas_as" rows="3" placeholder="Compromisos acordados, próximos pasos, notas de la sesión…"></textarea>
+  </div>
+  <div class="grid-2">
+    <div class="field">
+      <label class="field-label">Próxima sesión</label>
+      <input type="date" id="f_siguiente_sesion"/>
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label class="field-label">Activation Specialist</label>
+      <input type="text" id="f_as_final" placeholder="Nombre del AS"/>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DIAGNÓSTICO DE IMPLEMENTACIÓN
+════════════════════════════════════════════════ -->
+<div class="analysis-wrap" id="analysis-section">
+  <div class="analysis-header">
+    <div class="analysis-icon">🔍</div>
+    <div>
+      <div class="analysis-title">Tu Diagnóstico de Implementación</div>
+      <div class="analysis-sub">Generado con base en las respuestas de este diagnóstico</div>
+    </div>
+  </div>
+  <div id="analysis-body">
+    <p style="font-size:13.5px;color:var(--text-3);font-style:italic">Completen el diagnóstico y hagan clic en "Ver mi diagnóstico" para obtener su plan de implementación personalizado.</p>
+  </div>
+  <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap" class="no-print">
+    <button class="btn btn-primary" onclick="generateAnalysis()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Ver mi diagnóstico
+    </button>
+    <button class="btn btn-dark" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Descargar PDF
+    </button>
+  </div>
+</div>
+
+</main>
+<div class="action-bar no-print">
+  <button class="btn btn-ghost" onclick="generateAnalysis()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Generar análisis
+  </button>
+  <button class="btn btn-teal" onclick="sendToSheets()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Guardar en Sheets
+  </button>
+  <button class="btn btn-dark" onclick="window.print()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Imprimir / PDF
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────
+// PLAN DE ONBOARDING POR MÓDULO
+// Fuente: Plan de onboarding Lapzo (imágenes compartidas)
+// Sesiones de 1 hora cada una
+// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
+// LAPZO — RUTAS DE IMPLEMENTACIÓN v2.0
+// Fuente: Journey_Activacion_por_Producto_v1.xlsx + Rutas_de_implementacion_Lapzo_2026.html
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── Capacitación del equipo administrador ──
+const TRAINING_PLAN = {
+  plat: {
+    nombre:'Plataforma General', sesiones:2, color:'#6B3FCC',
+    temas:['Menús y tipos de usuario','Gestión de colaboradores y OUs','Propiedades, notificaciones y permisos','Validación técnica y primer acceso']
+  },
+  cya: {
+    nombre:'Capacitación y Aprendizaje', sesiones:6, color:'#8B55FE',
+    temas:['Activación del catálogo y carga de cursos propios','Creación de cursos desde el instructor (manual, LIA, LIA desde PDF)','DNC: diagnóstico de necesidades y estrategia de rutas','Gestión de cursos: asignación, privacidad, STPS y gamificación','Rutas de aprendizaje: diseño, asignación y avance condicional','Reportes de aprendizaje y exportación DC3/DC4']
+  },
+  dxc: {
+    nombre:'Desarrollo por Competencias', sesiones:5, color:'#5C3D8F',
+    temas:['Estructura organizacional: roles, OUs y descriptivos con LIA','Marcos y matrices de competencias (con IA o manual)','Alineación de colaboradores a matrices','Diagnósticos de competencias (4 niveles × 16 preguntas)','Planes Individuales de Desarrollo (PID) con LIA','Reportes: brechas por rol, cumplimiento de PIDs, 9Box']
+  },
+  eyc: {
+    nombre:'Evaluaciones y Clima', sesiones:5, color:'#04949D',
+    temas:['Banco de preguntas, secciones y plantillas de evaluación','Configuración del ciclo 180° (auto + líder) y prueba piloto','Lanzamiento, seguimiento y cierre del ciclo','Calibración de resultados y feedback a colaboradores','Reporte integral: 9Box + Competencias 30% + Objetivos 70%','Encuesta de clima: configuración, lanzamiento y reporte']
+  },
+  eye: {
+    nombre:'Estrategia y Ejecución / OKRs', sesiones:4, color:'#1E7E34',
+    temas:['Alineación estratégica con Dirección: KPIs y OKRs por área','Carga masiva de planes, objetivos, KPIs y tareas (plantilla)','Configuración manual: planes, sub-planes, objetivos, indicadores','Cultura de check-ins: cadencia quincenal o mensual','Reportes de avance y cierre de ciclo trimestral']
+  },
+};
+
+// ── Semanas de capacitación por ritmo ──
+const TIER_WEEKS = {
+  3: { plat:1, cya:2, dxc:2, eyc:2, eye:2 }, // Intensivo: 3 sesiones/semana
+  2: { plat:1, cya:3, dxc:3, eyc:3, eye:2 }, // Regular:   2 sesiones/semana
+  1: { plat:2, cya:6, dxc:5, eyc:5, eye:4 }, // Básico:    1 sesión/semana
+};
+const TIER_LABELS = {3:'Intensivo (3 sesiones/sem)', 2:'Regular (2 sesiones/sem)', 1:'Básico (1 sesión/sem)'};
+
+// ── Perfiles de ruta (fuente: Rutas_de_implementacion_Lapzo_2026.html) ──
+const ROUTE_PROFILES = {
+  dxc: {
+    nombre:'Ruta A · Descubre el talento de tu equipo',
+    color:'#7C3AED',
+    perfil:'Para organizaciones que comienzan desde cero. El diagnóstico de competencias como base garantiza que cada decisión de desarrollo, capacitación y evaluación esté respaldada por datos reales.',
+    kpis:['≥40% colaboradores con matriz asignada en ≤60 días del KO','Primer PID generado en M2','≥15% colaboradores con curso iniciado en 30d del acceso','Primer ciclo de evaluación 180° activo en M5'],
+  },
+  cya: {
+    nombre:'Ruta B · Capacita a tu equipo desde el día 1',
+    color:'#EA580C',
+    perfil:'Para organizaciones con urgencia de capacitación inmediata: cumplimiento STPS, onboarding masivo o lanzamiento de universidad corporativa. Competencias y evaluación se integran a partir del M3 potenciadas por los datos de aprendizaje ya generados.',
+    kpis:['≥15% colaboradores con curso iniciado en 30d del acceso','≥20% inscritos a ≥1 curso en 60 días','Primer ciclo de evaluación 180° activo en M4','Módulo DxC activo en M10 con PIDs desde evaluación'],
+  },
+  eyc: {
+    nombre:'Ruta C · Evalúa el desempeño de tu organización',
+    color:'#0D9488',
+    perfil:'Para organizaciones con un ciclo de evaluación próximo o necesidad urgente de medir desempeño o clima. La evaluación 180° desde M1 genera los datos que alimentan el modelo de competencias y los planes de desarrollo.',
+    kpis:['Ciclo 180° configurado y activo en ≤30 días del KO','≥5% colaboradores con evaluación finalizada en 30d','Rutas de aprendizaje basadas en PIDs activas en M6','Reporte integral 9Box disponible en M3'],
+  },
+  eye: {
+    nombre:'Ruta D · Alinea tu empresa hacia los mismos objetivos',
+    color:'#DB2777',
+    perfil:'Para organizaciones con urgencia de alinear su estrategia desde el día 1. Los objetivos y KPIs se instalan primero, creando la cultura de seguimiento que potencia competencias, capacitación y evaluación.',
+    kpis:['Ciclo de objetivos con ≥20% de la población en ≤2 meses del KO','≥50% colaboradores con ≥1 check-in completado (M2+)','Competencias y diagnósticos activos en M3','Primer ciclo de evaluación 180° activo en M6'],
+  },
+};
+
+// ─────────────────────────────────────────────────────
+// CRITERIOS DE DECISIÓN DE RUTA
+// Basados en: Objetivo (D1) + Madurez/Prerreqs (D2) + Urgencia (D3)
+// ─────────────────────────────────────────────────────
+function consultantSequence(active, semas, flags) {
+  const {dxcHasDesc, dxcDescPartial, eyecUrgent, eyeObjReady, eyeHasMetod, cyaPlanReady} = flags;
+  const readOrder = {green:1, yellow:2, red:3, '':2};
+
+  // ── RUTA A: DxC primero ──
+  // Condición: DxC contratado + descriptivos listos o parciales + no bloqueado completamente
+  // Perfil: organización dispuesta a construir la base de talento desde cero
+  if (active.includes('dxc') && dxcHasDesc) {
+    return sortAfterFirst('dxc', active, semas, readOrder);
+  }
+
+  // ── RUTA B: CyA primero ──
+  // Condición A: DxC contratado pero sin descriptivos → CyA como arranque mientras se construye la base
+  // Condición B: CyA sin DxC + necesidad de capacitación inmediata (STPS, onboarding, universidad)
+  if (active.includes('cya') && (
+      (active.includes('dxc') && !dxcHasDesc) ||
+      (!active.includes('dxc') && (cyaPlanReady || semas['cya']==='green'))
+  )) {
+    return sortAfterFirst('cya', active, semas, readOrder);
+  }
+
+  // ── RUTA C: EyC primero ──
+  // Condición: EyC contratado + hay urgencia de evaluación (fecha crítica o proceso próximo)
+  // DxC como base de competencias puede configurarse en paralelo en M1
+  if (active.includes('eyc') && eyecUrgent) {
+    return sortAfterFirst('eyc', active, semas, readOrder);
+  }
+
+  // ── RUTA D: EyE primero ──
+  // Condición: EyE contratado + objetivos del ciclo ya definidos o metodología activa
+  // O cuando EyE es el único módulo
+  if (active.includes('eye') && (eyeObjReady || eyeHasMetod || active.length===1)) {
+    return sortAfterFirst('eye', active, semas, readOrder);
+  }
+
+  // ── Default: DxC si existe (aunque bloqueado, arranca en paralelo), si no por madurez ──
+  if (active.includes('dxc')) {
+    return sortAfterFirst('dxc', active, semas, readOrder);
+  }
+  return [...active].sort((a,b) => readOrder[semas[a]||'']-readOrder[semas[b]||'']);
+}
+
+function sortAfterFirst(first, active, semas, readOrder) {
+  const rest = active.filter(m=>m!==first)
+    .sort((a,b) => readOrder[semas[a]||'']-readOrder[semas[b]||'']);
+  return active.includes(first) ? [first,...rest] : rest;
+}
+
+function getRecommendedRouteKey(active) {
+  const semas = Object.fromEntries(['cya','dxc','eyc','eye'].map(m=>[m,getSemaVal('sema_'+m)]));
+  const desc = document.getElementById('radio_dxc_desc');
+  const dxcDescVal = desc ? getRadio('radio_dxc_desc') : '';
+  const dxcHasDesc = !!(dxcDescVal && !dxcDescVal.includes('No existen'));
+  const eyeObj = getRadio('radio_eye_objetivos');
+  const eyeMetod = getRadio('radio_eye_metodologia');
+  const cyaContenido = getRadio('radio_cya_contenido');
+  const eyecUrg = getRadio('radio_eyc_urgencia');
+  const flags = {
+    dxcHasDesc,
+    dxcDescPartial: !!(dxcDescVal && (dxcDescVal.includes('algunos') || dxcDescVal.includes('proceso'))),
+    eyecUrgent: !!(eyecUrg && eyecUrg.includes('menos de un mes')),
+    eyeObjReady: !!(eyeObj && (eyeObj.includes('listos') || eyeObj.includes('parcialmente'))),
+    eyeHasMetod: !!(eyeMetod && !eyeMetod.includes('No contamos')),
+    cyaPlanReady: !!(cyaContenido && cyaContenido.includes('mayoría')),
+  };
+  const seq = consultantSequence(active, semas, flags);
+  return seq[0] || active[0];
+}
+
+function getModuleOrder(routeKey, active) {
+  const semas = Object.fromEntries(['cya','dxc','eyc','eye'].map(m=>[m,getSemaVal('sema_'+m)]));
+  const order = {green:1,yellow:2,red:3,'':2};
+  const rest = active.filter(m=>m!==routeKey)
+    .sort((a,b)=>order[semas[a]||'']-order[semas[b]||'']);
+  return active.includes(routeKey) ? [routeKey,...rest] : rest;
+}
+
+function getSemaVal(id) {
+  for (const col of ['green','yellow','red']) {
+    const b = document.getElementById(id+'_'+col);
+    if (b && b.className.includes('sel-'+col)) return col;
+  }
+  for (const col of ['green','yellow','red']) {
+    const e = document.getElementById('sr_'+id+'_'+col);
+    if (e && parseFloat(e.style.opacity) === 1) return col;
+  }
+  return '';
+}
+
+// ── Month label helper ──
+function monthLabel(kickoffStr, offset) {
+  try {
+    const d = new Date(kickoffStr + 'T12:00:00');
+    d.setMonth(d.getMonth() + offset);
+    return d.toLocaleDateString('es-MX', {month:'long', year:'numeric'})
+      .replace(/^\w/, ch => ch.toUpperCase());
+  } catch(e) { return `Mes ${offset+1}`; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CONSTRUCTOR DEL PLAN MENSUAL
+// Fuente: Journey_Activacion_por_Producto_v1.xlsx
+// Fases, responsables, tipos y metas de activación del journey oficial
+// ═══════════════════════════════════════════════════════════════════════
+function buildConsultantPlan(active, semas, flags, sequence) {
+  const plan = {};
+  const add = (mi, mod, text, who='Admin', tag='config') => {
+    if (!plan[mi]) plan[mi] = [];
+    plan[mi].push({mod, text, who, tag});
+  };
+
+  const {dxcHasDesc, dxcDescPartial, eyecUrgent, eyeObjReady, eyeHasMetod, cyaPlanReady} = flags;
+  const first = sequence[0];
+
+  // ════════════════════════════════
+  // PLAT — Plataforma General (M0)
+  // Aplica a TODOS los módulos como prerequisito
+  // ════════════════════════════════
+  add(0,'plat','Solicitud y creación de instancia Lapzo (dominio, configuración DNS si aplica)','Lapzo','config');
+  add(0,'plat','Configuración inicial: imagen corporativa, idioma y parámetros base','Lapzo','config');
+  add(0,'plat','Creación de administradores y gestión de permisos por rol','Lapzo','config');
+  add(0,'plat','Definición y creación de atributos personalizados (seniority, área, ubicación)','Admin','config');
+  add(0,'plat','Estructura organizacional: Roles y OUs · Carga masiva de usuarios','Admin','config');
+  add(0,'plat','Validación técnica: acceso, notificaciones, prueba post-checkup','Lapzo','config');
+  add(0,'plat','Plan de comunicación interna + comunicado de bienvenida a colaboradores','Admin','comun');
+  // Meta: ≥50% colaboradores cargados en 30 días · 100% admins capacitados en ≤30 días del KO
+  add(0,'plat','Capacitación de admins en todos los módulos contratados (sesión completa)','Lapzo','onb');
+
+  // ════════════════════════════════
+  // RUTA A — DxC primero
+  // ════════════════════════════════
+  if (first === 'dxc') {
+    // M1 — DxC: Alineación y base + Marcos y matrices
+    const m = 0;
+    if (!dxcHasDesc) {
+      add(m,'dxc','⚠️ Prerrequisito: construir descriptivos de puesto con LIA (bloqueo crítico para DxC)','Admin','prereq');
+    }
+    add(m,'dxc','Estructura organizacional definida y validada · Roles y puestos cargados en plataforma','Admin','config');
+    add(m,'dxc','Descriptivos de roles generados con LIA · Revisión y ajuste con el cliente','Admin','config');
+    add(m,'dxc','Creación de niveles de competencia (Básico, Intermedio, Avanzado, Experto)','Admin','config');
+    add(m,'dxc','Mapa de competencias definido por rol y nivel · Creación de marcos y matrices con LIA','Admin','config');
+    add(m,'dxc','Alineación de colaboradores a matrices (por rol, OU o propiedad)','Admin','config');
+    add(m,'dxc','Diseño del diagnóstico de competencias (4 niveles × 16 preguntas)','Admin','config');
+    // Meta: ≥40% colaboradores con matriz asignada en 60 días
+
+    // M2 — DxC: Diagnósticos + PIDs | EyE: KPIs con Dirección
+    add(1,'dxc','Lanzamiento de diagnósticos a colaboradores · Ventana sugerida: 2 semanas','Colaborador','accion');
+    add(1,'dxc','Seguimiento periódico y recordatorios a no respondientes','Admin','seguim');
+    add(1,'dxc','Reportes de resultados: brechas por área y rol','Admin','reporte');
+    add(1,'dxc','Diseño y lanzamiento de PIDs con LIA (basados en resultados de diagnóstico)','Admin','config');
+    // Meta: ≥30% colaboradores con PID creado en 60 días
+
+    if (active.includes('eye')) {
+      if (!eyeObjReady) {
+        add(1,'eye','Taller de alineación estratégica con Dirección: definición de KPIs por área/rol','Líder','config');
+      }
+      add(1,'eye','Carga de planes, objetivos y KPIs · Asignación de responsables y check-ins','Admin','config');
+      add(1,'eye','Publicación del plan + campaña de cultura de objetivos','Líder','comun');
+    }
+
+    // M3 — DxC: Reporte Desarrollo 1 | CyA: Rutas | EyC: Config evaluación
+    add(2,'dxc','Reporte de Desarrollo 1: resultados de diagnósticos + plan de PIDs · Sesión ejecutiva','Admin','reporte');
+
+    if (active.includes('cya')) {
+      add(2,'cya','Activación del catálogo Lapzo · DNC y carga de cursos propios (si aplica)','Admin','config');
+      add(2,'cya','Creación de rutas de aprendizaje vinculadas a PIDs · Asignación por rol/OU','Admin','config');
+      add(2,'cya','Comunicado de inicio de rutas a colaboradores · Encendido de notificaciones','Admin','comun');
+      add(2,'cya','🎓 Inicio de ruta de aprendizaje Parte 1 (2 hrs/semana × 12 semanas)','Colaborador','onb');
+    }
+
+    if (active.includes('eyc')) {
+      add(2,'eyc','Taller de calibración con líderes: criterios de evaluación alineados','Admin','config');
+      add(2,'eyc','Banco de preguntas, secciones y plantilla del ciclo 180° (auto + líder directo)','Admin','config');
+    }
+
+    // M4-M5 — EyC: Lanzamiento + Respuesta | EyE: Check-ins activos | CyA: Seguimiento
+    if (active.includes('eyc')) {
+      add(3,'eyc','Lanzamiento oficial del ciclo de evaluación · Notificaciones a participantes','Admin','config');
+      add(3,'eyc','Comunicado de estrategia de feedback efectivo a líderes','Admin','comun');
+      add(3,'eyc','Período de respuesta de evaluaciones (4 semanas)','Colaborador','accion');
+      add(3,'eyc','Seguimiento semanal a participación · Recordatorios a rezagados','Admin','seguim');
+      // Meta: ≥5% evaluaciones completadas en 30d del lanzamiento
+    }
+
+    if (active.includes('eye')) {
+      add(3,'eye','🎓 Check-ins Q1 activos: cadencia quincenal instalada · Seguimiento de líderes','Colaborador','onb');
+    }
+
+    if (active.includes('cya')) {
+      add(3,'cya','Seguimiento a avance en ruta de aprendizaje · Reporte ½ ruta 1 (45 días)','Admin','reporte');
+    }
+
+    // M5-M6 — EyC: Cierre + 9Box | DxC: Calibración
+    if (active.includes('eyc')) {
+      add(4,'eyc','Cierre del ciclo de evaluación · Calibración de resultados con líderes','Admin','config');
+      add(4,'eyc','Corte para Reporte Integral: consolidar EyC + EyE + DxC','Admin','reporte');
+    }
+
+    add(4,'dxc','Calibración de competencias + sesiones de feedback líder-colaborador','Líder','seguim');
+
+    if (active.includes('eyc')) {
+      add(5,'eyc','Reporte Integral: 9Box + Competencias (30%) + Objetivos (70%) · Sesión ejecutiva','Admin','reporte');
+      add(5,'eyc','Sesiones de feedback: líderes con colaboradores (30-40 min c/u)','Líder','accion');
+    }
+
+    if (active.includes('eye')) {
+      add(5,'eye','Cierre Q1 + redefinición de objetivos para Q2 · Nuevo ciclo activo','Admin','config');
+    }
+
+    // M7-M8 — DxC: PID 2 | EyC: Clima | CyA: Ruta Parte 2
+    add(6,'dxc','Relanzamiento PID 2: acuerdos líder-colaborador para el siguiente trimestre','Admin','config');
+
+    if (active.includes('eyc')) {
+      add(7,'eyc','Encuesta de clima laboral: configuración y lanzamiento','Admin','config');
+      add(8,'eyc','Período de respuesta de clima (2 semanas) · Reporte de hallazgos y plan de acción','Admin','reporte');
+    }
+
+    if (active.includes('cya')) {
+      add(7,'cya','🎓 Inicio de ruta de aprendizaje Parte 2 (2 hrs/semana × 12 semanas)','Colaborador','onb');
+    }
+
+    if (active.includes('eye')) {
+      add(9,'eye','Check-ins Q2/Q3 activos · Seguimiento mensual a cadencia','Líder','seguim');
+    }
+
+    // M12 — Cierre de año
+    add(11,'dxc','Relanzamiento PID 3: plan de desarrollo alineado al inicio del año 2','Admin','config');
+    if (active.includes('eyc')) {
+      add(11,'eyc','Evaluación ciclo 2 · Vista comparativa M5 vs M12 · Reporte cierre año 1','Admin','reporte');
+    }
+    if (active.includes('eye')) {
+      add(11,'eye','Re-definición de objetivos año 2 con Dirección · Lanzamiento de estrategia año 2','Líder','config');
+    }
+  }
+
+  // ════════════════════════════════
+  // RUTA B — CyA primero
+  // ════════════════════════════════
+  else if (first === 'cya') {
+    // M1 — CyA: Habilitación del módulo
+    add(0,'cya','Activación y publicación del catálogo Lapzo (catálogo Tecmi disponible)','Admin','config');
+    if (cyaPlanReady) {
+      add(0,'cya','Carga y organización de cursos propios (archivos SCORM, videos, PDFs)','Admin','config');
+    } else {
+      add(0,'cya','DNC de capacitación: diagnóstico de necesidades y estrategia de rutas (3 opciones)','Admin','config');
+    }
+    add(0,'cya','Temas y subtemas de aprendizaje definidos · Creación de cursos con LIA o manual','Admin','config');
+    add(0,'cya','Prueba piloto de cursos (admin toma el curso como colaborador)','Admin','config');
+
+    // M2 — CyA: Rutas + Lanzamiento
+    add(1,'cya','Creación de rutas de aprendizaje con base en DNC · Asignación por rol/OU','Admin','config');
+    add(1,'cya','Comunicado de inicio de rutas · Inscripción de colaboradores','Admin','comun');
+    add(1,'cya','🎓 Inicio de ruta de aprendizaje Parte 1 (2 hrs/semana × 12 semanas)','Colaborador','onb');
+    // Meta: ≥20% inscritos a ≥1 curso en 60 días · ≥15% con curso iniciado en 30d
+    add(1,'cya','🎓 Capacitación de admins en reportes CyA · Primer reporte exportado','Admin','onb');
+
+    // M3 — EyE: KPIs | EyC: Config
+    if (active.includes('eye')) {
+      if (!eyeObjReady) {
+        add(2,'eye','Taller de alineación estratégica con Dirección: KPIs por área/rol','Líder','config');
+      }
+      add(2,'eye','Carga de planes, objetivos y KPIs · Publicación del plan y campañas','Admin','config');
+    }
+    if (active.includes('eyc')) {
+      add(2,'eyc','Banco de preguntas, plantilla y configuración del ciclo 180° (auto + líder)','Admin','config');
+    }
+
+    // M3-M4 — CyA: Seguimiento | EyC: Lanzamiento | EyE: Check-ins
+    add(2,'cya','Seguimiento a avance en ruta Parte 1 · Reportes de completitud y aprobación','Admin','reporte');
+
+    if (active.includes('eyc')) {
+      add(3,'eyc','Lanzamiento oficial del ciclo de evaluación 180°','Admin','config');
+      add(3,'eyc','Período de respuesta (4 semanas) · Seguimiento semanal','Colaborador','accion');
+    }
+
+    if (active.includes('eye')) {
+      add(3,'eye','🎓 Check-ins Q1 activos · Cadencia quincenal instalada','Colaborador','onb');
+    }
+
+    // M4 — CyA: Reporte ½ ruta
+    add(3,'cya','Reporte ½ ruta 1 (45 días): % completitud, lecciones, tasa de aprobación','Admin','reporte');
+
+    // M5-M6 — EyC: Calibración + 9Box | EyE: Cierre Q1
+    if (active.includes('eyc')) {
+      add(4,'eyc','Cierre del ciclo · Calibración de resultados con líderes','Admin','config');
+      add(4,'eyc','Reporte Integral: 9Box + Objetivos 70% · Sesión ejecutiva','Admin','reporte');
+    }
+
+    if (active.includes('eye')) {
+      add(5,'eye','Cierre Q1 + redefinición de objetivos para Q2','Admin','config');
+    }
+
+    // M6 — EyC: Feedback
+    if (active.includes('eyc')) {
+      add(5,'eyc','Sesiones de feedback líder-colaborador · Comunicado de resultados','Líder','accion');
+    }
+
+    // M8-M10 — DxC (si contratado) + CyA Parte 2
+    if (active.includes('dxc')) {
+      add(8,'cya','Reporte a los 45 días de Ruta 1: decisión estratégica para DxC','Admin','reporte');
+      if (!dxcHasDesc) {
+        add(8,'dxc','⚠️ Completar descriptivos de puesto (prerrequisito crítico para DxC)','Admin','prereq');
+      }
+      add(9,'dxc','Estructura org. + matrices con LIA · Alineación de colaboradores','Admin','config');
+      add(9,'dxc','PIDs generados con LIA desde resultados de evaluación 180°','Admin','config');
+      add(9,'dxc','Reporte de Desarrollo 1: resultados diagnósticos + plan de PIDs','Admin','reporte');
+    }
+
+    add(9,'cya','🎓 Inicio de ruta de aprendizaje Parte 2 (2 hrs/semana × 12 semanas)','Colaborador','onb');
+
+    // M11-M12 — Clima + cierre
+    if (active.includes('eyc')) {
+      add(10,'eyc','Encuesta de clima: configuración, lanzamiento y reporte de hallazgos','Admin','config');
+    }
+    if (active.includes('eye')) {
+      add(11,'eye','Re-definición de objetivos año 2 con Dirección · Estrategia año 2 comunicada','Líder','config');
+    }
+    add(11,'cya','Reporte ½ ruta 2 (45 días): avance ciclo 2 · Análisis de adherencia','Admin','reporte');
+  }
+
+  // ════════════════════════════════
+  // RUTA C — EyC primero
+  // ════════════════════════════════
+  else if (first === 'eyc') {
+    // M1 — DxC base (en paralelo) + EyC config
+    if (active.includes('dxc')) {
+      if (!dxcHasDesc) {
+        add(0,'dxc','⚠️ Prerrequisito: descriptivos de puesto necesarios · Iniciar construcción con LIA','Admin','prereq');
+      }
+      add(0,'dxc','Estructura organizacional + descriptivos de roles + matrices de competencias (LIA)','Admin','config');
+      add(0,'dxc','Alineación de colaboradores a matrices · Mapa de competencias por rol y nivel','Admin','config');
+    }
+    add(0,'eyc','Taller de calibración con líderes: criterios de evaluación y sesgo cero','Admin','config');
+    add(0,'eyc','Banco de preguntas, secciones y plantilla del ciclo 180° (auto + líder)','Admin','config');
+    add(0,'eyc','Prueba piloto del ciclo con usuarios clave','Admin','config');
+
+    // M2 — EyC: Lanzamiento + Respuesta | EyE: KPIs
+    add(1,'eyc','Lanzamiento oficial del ciclo de evaluación 180°','Admin','config');
+    add(1,'eyc','Comunicado de feedback efectivo a líderes','Admin','comun');
+    add(1,'eyc','Período de respuesta (4 semanas) · Seguimiento semanal','Colaborador','accion');
+    // Meta: ≥5% evaluaciones completadas en 30d
+
+    if (active.includes('eye')) {
+      if (!eyeObjReady) {
+        add(1,'eye','Taller de alineación estratégica con Dirección: KPIs por área/rol','Líder','config');
+      }
+      add(1,'eye','Carga de planes y objetivos · Publicación del plan','Admin','config');
+    }
+
+    // M3 — EyC: Calibración + 9Box | EyE: Check-ins
+    add(2,'eyc','Cierre del ciclo · Calibración de resultados con líderes','Admin','config');
+    add(2,'eyc','Corte para Reporte Integral (EyC + EyE + DxC)','Admin','reporte');
+    add(2,'eyc','Reporte Integral: 9Box + Competencias (30%) + Objetivos (70%)','Admin','reporte');
+
+    if (active.includes('eye')) {
+      add(2,'eye','🎓 Check-ins Q1 activos · Cadencia quincenal instalada','Colaborador','onb');
+    }
+
+    // M4 — EyC: Feedback | DxC: Diagnósticos | CyA: Config
+    add(3,'eyc','Sesiones de feedback: líderes con colaboradores (30-40 min c/u)','Líder','accion');
+
+    if (active.includes('dxc')) {
+      add(3,'dxc','Diseño y lanzamiento del diagnóstico de competencias (4 niveles × 16 preguntas)','Admin','config');
+      add(3,'dxc','Lanzamiento del diagnóstico · Ventana 2 semanas · Seguimiento','Colaborador','accion');
+    }
+
+    if (active.includes('cya')) {
+      add(3,'cya','Activación del catálogo + DNC + carga de cursos propios','Admin','config');
+    }
+
+    // M5-M6 — DxC: PIDs | EyE: Cierre Q1 | CyA: Rutas
+    if (active.includes('dxc')) {
+      add(4,'dxc','PIDs generados con LIA desde resultados del diagnóstico','Admin','config');
+    }
+
+    if (active.includes('eye')) {
+      add(4,'eye','Cierre Q1 + redefinición de objetivos para Q2','Admin','config');
+    }
+
+    if (active.includes('cya')) {
+      add(5,'cya','Rutas de aprendizaje vinculadas a PIDs · Comunicado de inicio','Admin','comun');
+      add(5,'cya','🎓 Inicio de ruta de aprendizaje Parte 1 (2 hrs/semana × 12 semanas)','Colaborador','onb');
+    }
+
+    if (active.includes('dxc')) {
+      add(5,'dxc','Reporte de Desarrollo 1: resultados diagnósticos + plan de PIDs','Admin','reporte');
+    }
+
+    // M7+ — DxC: Calibración + PID 2 | CyA: Reporte | EyE: Q2
+    if (active.includes('dxc')) {
+      add(6,'dxc','Relanzamiento PID 2: acuerdos del siguiente trimestre','Admin','config');
+    }
+
+    if (active.includes('cya')) {
+      add(7,'cya','Reporte ½ ruta 1 (45 días): completitud y adherencia','Admin','reporte');
+    }
+
+    // M9 — Clima
+    add(8,'eyc','Encuesta de clima: configuración, lanzamiento y período de respuesta (2 semanas)','Admin','config');
+    add(9,'eyc','Cierre de clima · Reporte de hallazgos y plan de acción','Admin','reporte');
+
+    // M11-M12 — Ciclo 2
+    add(10,'eyc','Evaluación ciclo 2: comunicación + configuración reutilizando plantilla','Admin','comun');
+    add(11,'eyc','Lanzamiento ciclo 2 · Respuesta 4 semanas · Reporte integral cierre año 1','Admin','reporte');
+
+    if (active.includes('eye')) {
+      add(11,'eye','Re-definición de objetivos año 2 con Dirección','Líder','config');
+    }
+
+    if (active.includes('cya')) {
+      add(10,'cya','🎓 Inicio de ruta de aprendizaje Parte 2','Colaborador','onb');
+    }
+  }
+
+  // ════════════════════════════════
+  // RUTA D — EyE primero
+  // ════════════════════════════════
+  else if (first === 'eye') {
+    // M1 — EyE: Alineación estratégica
+    if (!eyeObjReady) {
+      add(0,'eye','Taller de alineación estratégica con Dirección: KPIs por área/rol para el ciclo','Lapzo / Líder','config');
+    }
+    add(0,'eye','Carga masiva con plantilla: planes, objetivos, KPIs, tareas','Admin','config');
+    add(0,'eye','Configuración manual: planes, sub-planes, objetivos e indicadores','Admin','config');
+    add(0,'eye','Asignación de responsables · Configuración de check-ins (frecuencia: quincenal)','Líder','config');
+    add(0,'eye','Publicación del plan + campaña de cultura de objetivos','Líder','comun');
+    // Meta: ciclo con ≥20% de la población en ≤2 meses del KO
+
+    // M2 — EyE: Check-ins activos | DxC: Base
+    add(1,'eye','🎓 Check-ins Q1 activos: colaboradores actualizan progreso · Líderes dan seguimiento','Colaborador','onb');
+    add(1,'eye','Seguimiento a cadencia · Alineación KPIs-Objetivos en plataforma','Admin','seguim');
+    // Meta: ≥50% colaboradores con ≥1 ingreso a módulo EyE en 30d
+
+    if (active.includes('dxc')) {
+      if (!dxcHasDesc) {
+        add(1,'dxc','⚠️ Prerrequisito: descriptivos de puesto necesarios · Iniciar con LIA','Admin','prereq');
+      }
+      add(1,'dxc','Estructura org. + descriptivos de roles + matrices de competencias','Admin','config');
+      add(1,'dxc','Diseño del diagnóstico de competencias (4 niveles × 16 preguntas)','Admin','config');
+    }
+
+    if (active.includes('cya')) {
+      add(2,'cya','Activación del catálogo + primeras rutas de aprendizaje · Comunicado de inicio','Admin','config');
+    }
+
+    // M3-M4 — DxC: Diagnósticos | EyE: Seguimiento | CyA: Rutas
+    if (active.includes('dxc')) {
+      add(2,'dxc','Lanzamiento de diagnóstico de competencias · Ventana 2 semanas','Colaborador','accion');
+    }
+
+    if (active.includes('cya')) {
+      add(3,'cya','🎓 Inicio de ruta de aprendizaje Parte 1 (2 hrs/semana × 12 semanas)','Colaborador','onb');
+    }
+
+    add(3,'eye','Seguimiento mensual a cadencia de check-ins · Revisión ejecutiva de avance','Líder','seguim');
+
+    // M5 — DxC: PIDs | EyE: Cierre Q1
+    if (active.includes('dxc')) {
+      add(4,'dxc','PIDs anclados a objetivos: generados con LIA · Reporte de Desarrollo 1','Admin','config');
+    }
+
+    add(4,'eye','Cierre Q1: snapshot de resultados + redefinición de objetivos para Q2','Admin','config');
+
+    // M6 — EyC: Config evaluación
+    if (active.includes('eyc')) {
+      add(5,'eyc','Banco de preguntas + plantilla del ciclo 180° (competencias + objetivos)','Admin','config');
+      add(5,'eyc','Lanzamiento del ciclo de evaluación 180°','Admin','config');
+    }
+
+    // M6-M8 — EyE: Q2 | DxC: Calibración | EyC: Respuesta
+    add(5,'eye','🎓 Check-ins Q2 activos · Líderes dan seguimiento','Colaborador','onb');
+
+    if (active.includes('eyc')) {
+      add(6,'eyc','Período de respuesta de evaluaciones (4 semanas)','Colaborador','accion');
+      add(7,'eyc','Calibración + Reporte Integral 9Box: Competencias 30% + Objetivos 70%','Admin','reporte');
+      add(7,'eyc','Sesiones de feedback líder-colaborador','Líder','accion');
+    }
+
+    if (active.includes('dxc')) {
+      add(6,'dxc','Relanzamiento PID 2: acuerdos del siguiente trimestre','Admin','config');
+    }
+
+    if (active.includes('cya')) {
+      add(5,'cya','Reporte ½ ruta 1 (45 días)','Admin','reporte');
+    }
+
+    // M9-M12 — Clima + CyA Parte 2 + cierre
+    if (active.includes('eyc')) {
+      add(9,'eyc','Encuesta de clima: config. + lanzamiento + reporte de hallazgos','Admin','config');
+      add(10,'eyc','Reporte de clima · Hallazgos y plan de acción','Admin','reporte');
+    }
+
+    if (active.includes('cya')) {
+      add(8,'cya','🎓 Inicio de ruta de aprendizaje Parte 2','Colaborador','onb');
+      add(10,'cya','Reporte ½ ruta 2 (45 días)','Admin','reporte');
+    }
+
+    add(11,'eye','Re-definición de objetivos año 2 con Dirección · Estrategia año 2 comunicada','Líder','config');
+
+    if (active.includes('eyc')) {
+      add(11,'eyc','Reporte integral cierre año 1: Evaluación ciclo 2 · Vista comparativa','Admin','reporte');
+    }
+  }
+
+  return plan;
+}
+
+// ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────
+// GLOBALS & MODULE STATE
+// ─────────────────────────────────────────────────────
+let activeModules = {cya:false, dxc:false, eyc:false, eye:false};
+let currentTier = null;
+
+const MOD_NAMES = {
+  cya:'Capacitación y Aprendizaje',
+  dxc:'Desarrollo por Competencias',
+  eyc:'Evaluaciones y Clima',
+  eye:'Estrategia y Ejecución',
+};
+const MOD_COLORS = {cya:'#8B55FE', dxc:'#5C3D8F', eyc:'#04949D', eye:'#1E7E34'};
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildStaticChoices();
+  const fd = document.getElementById('f_fecha');
+  if (fd && !fd.value) fd.value = new Date().toISOString().split('T')[0];
+});
+
+// ─── Module toggle ────────────────────────────────────
+function updateModules() {
+  ['cya','dxc','eyc','eye'].forEach(m => {
+    activeModules[m] = document.getElementById('mod_'+m).checked;
+    document.getElementById('mc_'+m).classList.toggle('active', activeModules[m]);
+    // v4 blocks (dim2 info de módulos)
+    const bv4 = document.getElementById('block-'+m+'-v4');
+    if (bv4) bv4.classList.toggle('visible', activeModules[m]);
+  });
+  buildSemaRows();
+  buildPrereqTable();
+  refreshPlan();
+}
+
+// ─── Semaphore rows (hidden, kept for getSemaVal) ─────
+function buildSemaRows() {
+  const wrap = document.getElementById('sema-rows');
+  if (!wrap) return;
+  const active = ['cya','dxc','eyc','eye'].filter(m => activeModules[m]);
+  wrap.innerHTML = active.map(m => `
+    <div class="sema-row" id="sema_${m}_row">
+      <span style="width:34px;height:34px;border-radius:9px;background:${MOD_COLORS[m]};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0">${m.toUpperCase()}</span>
+      <span class="sema-label">${MOD_NAMES[m]}</span>
+      <div style="display:flex;gap:6px">
+        ${['green','yellow','red'].map(col=>`
+          <span onclick="selectSemaRow('sema_${m}','${col}');refreshPlan()" data-id="${m}"
+            id="sr_sema_${m}_${col}" style="cursor:pointer;font-size:20px;opacity:.3;transition:opacity .15s"
+            title="${col==='green'?'Listo para iniciar':col==='yellow'?'En preparación':'Requiere construcción'}">
+            ${col==='green'?'🟢':col==='yellow'?'🟡':'🔴'}
+          </span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ─── Tier selector ────────────────────────────────────
+function setTier(t) {
+  currentTier = t;
+  [1,2,3].forEach(n => {
+    const btn = document.getElementById('tier-btn-'+n);
+    const dot = document.getElementById('tier-dot-'+n);
+    if (!btn || !dot) return;
+    const on = n === t;
+    btn.style.borderColor = on ? 'var(--v)' : 'var(--border)';
+    btn.style.background  = on ? 'var(--v-light)' : '';
+    dot.style.background  = on ? 'var(--v)' : '';
+    dot.style.borderColor = on ? 'var(--v)' : 'var(--border)';
+  });
+  document.getElementById('f_tier').value = t;
+  refreshPlan();
+}
+
+// ─── Live onboarding plan preview ────────────────────
+function refreshPlan() {
+  const tier   = currentTier;
+  const active = ['cya','dxc','eyc','eye'].filter(m => activeModules[m]);
+  const out    = document.getElementById('plan-output');
+  if (!out) return;
+
+  if (!tier || !active.length) {
+    out.innerHTML = '<div class="plan-card"><p class="plan-empty">Completen el diagnóstico y seleccionen el ritmo de sesiones en la Dimensión 2 para ver el plan de onboarding estimado.</p></div>';
+    return;
+  }
+
+  const wks = TIER_WEEKS[tier];
+  const tierLabel = TIER_LABELS[tier];
+  const routeKey  = getRecommendedRouteKey(active);
+  const routeOrder = getModuleOrder(routeKey, active);
+  const profile   = ROUTE_PROFILES[routeKey] || {};
+
+  // Build phases
+  let phases = [], week = 1;
+  const platWks = wks.plat;
+  phases.push({key:'plat', start:week, end:week+platWks, extra:0, info:TRAINING_PLAN.plat});
+  week += platWks;
+  routeOrder.forEach(m => {
+    const sema  = getSemaVal('sema_'+m);
+    const mWks  = wks[m] || 2;
+    const extra = sema==='red' ? Math.ceil(mWks*0.5) : 0;
+    phases.push({key:m, start:week, end:week+mWks+extra, extra, info:TRAINING_PLAN[m]});
+    week += mWks + extra;
+  });
+  const totalWks = phases[phases.length-1]?.end - 1 || 0;
+  const totalSes = phases.reduce((s,p)=>s+(p.info?.sesiones||0), 0);
+
+  const phaseRows = phases.map((p,i) => {
+    const color = p.key==='plat' ? '#6B3FCC' : MOD_COLORS[p.key];
+    const durWks = p.end - p.start;
+    const extraNote = p.extra ? ` <span style="font-size:10px;color:var(--yellow)">(+${p.extra} sem. prep)</span>` : '';
+    const temas = p.info?.temas?.map(t=>`<div style="font-size:11px;color:var(--text-3);margin-bottom:2px">· ${t}</div>`).join('')||'';
+    const badge = p.key==='plat'
+      ? `<span style="background:${color};color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px">GEN</span>`
+      : `<span style="background:${color};color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px">${p.key.toUpperCase()}</span>`;
+    return `<tr style="background:${i%2===0?'#fff':'var(--grey)'}">
+      <td style="padding:10px 12px;border:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          ${badge}
+          <span style="font-size:12.5px;font-weight:600;color:var(--text)">${p.info?.nombre||'—'}</span>
+        </div>
+      </td>
+      <td style="text-align:center;padding:10px 12px;font-size:13px;font-weight:700;color:var(--text);border:1px solid var(--border)">${p.info?.sesiones||2}</td>
+      <td style="text-align:center;padding:10px 12px;font-size:13px;font-weight:700;color:var(--text);border:1px solid var(--border)">${durWks}${extraNote}</td>
+      <td style="padding:10px 12px;border:1px solid var(--border)">${temas}</td>
+    </tr>`;
+  }).join('');
+
+  out.innerHTML = `
+    <div class="plan-card">
+      <div class="plan-title">📅 Plan de capacitación del equipo · ${tierLabel}</div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">
+        Ruta recomendada: <strong style="color:${profile.color||'var(--v)'}">${profile.nombre||routeKey.toUpperCase()}</strong>
+      </div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:var(--v-dark)">
+            <th style="text-align:left;padding:9px 12px;color:#fff;font-size:11px;font-weight:700;border:1px solid #3D1080">Módulo</th>
+            <th style="text-align:center;padding:9px 12px;color:#fff;font-size:11px;font-weight:700;border:1px solid #3D1080">Sesiones</th>
+            <th style="text-align:center;padding:9px 12px;color:#fff;font-size:11px;font-weight:700;border:1px solid #3D1080">Semanas</th>
+            <th style="text-align:left;padding:9px 12px;color:#fff;font-size:11px;font-weight:700;border:1px solid #3D1080">Temas</th>
+          </tr>
+        </thead>
+        <tbody>${phaseRows}</tbody>
+      </table>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;padding:10px 14px;background:var(--v-light);border-radius:8px;font-size:12.5px;margin-top:10px">
+        <span>⏱ <strong>Total estimado: ${totalWks} semanas</strong></span>
+        <span>📋 <strong>${totalSes} sesiones de 1 hora</strong></span>
+        <span>🎯 <strong>${tierLabel}</strong></span>
+      </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────────────
+// ─── Generate analysis ────────────────────────────────
+function generateAnalysis() {
+  const active = ['cya','dxc','eyc','eye'].filter(m => activeModules[m]);
+  if (!active.length) { showToast('Seleccionen al menos un módulo para continuar','error',4000); return; }
+
+  // Rebuild prereq table with latest answers before analysis
+  buildPrereqTable();
+
+  const semas = Object.fromEntries(['cya','dxc','eyc','eye'].map(m=>[m,getSemaVal('sema_'+m)]));
+  const kickoffDate = document.getElementById('f_fecha')?.value || new Date().toISOString().split('T')[0];
+  const tier = currentTier;
+  const diasHorarios = document.getElementById('f_dias_horarios')?.value || '';
+  const notas = document.getElementById('f_notas_as')?.value || '';
+
+  // ── DIM 1: Objetivos ──
+  const objSelected = [...document.querySelectorAll('#chk_obj_dev .check-item.selected, #chk_obj_cap .check-item.selected, #chk_obj_des .check-item.selected, #chk_obj_cul .check-item.selected')]
+    .map(e => e.querySelector('.check-label')?.textContent?.trim()).filter(Boolean);
+  const meta60 = document.getElementById('f_resultado_sponsor')?.value || '';
+
+  // ── DIM 2: Madurez answers ──
+  const dxcDesc = getRadio('radio_dxc_desc');
+  const dxcConstr = getRadio('radio_dxc_construccion');
+  const eyeObj = getRadio('radio_eye_objetivos');
+  const eyeMetod = getRadio('radio_eye_metodologia');
+  const cyaContenido = getRadio('radio_cya_contenido');
+  const cyaPlan = getRadio('radio_cya_plan');
+  const eyecUrgenciaPre = getRadio('radio_eyc_urgencia');
+  const sponsor = getRadio('radio_sponsor');
+  const admins = getRadio('radio_admins');
+  const horas = getRadio('radio_horas');
+  const cambio = getRadio('radio_cambio');
+
+  // ── Auto-calc Índice de Preparación ──
+  // Gobernanza (25pts): sponsor
+  let gob = 0;
+  if (sponsor.includes('Director')) gob = 25;
+  else if (sponsor.includes('Gerente')) gob = 18;
+  else if (sponsor.includes('RH')) gob = 10;
+  // Recursos (25pts): admins
+  let rec = 0;
+  if (admins.includes('3 o más')) rec = 25;
+  else if (admins.includes('2 personas')) rec = 18;
+  else if (admins.includes('1 persona')) rec = 10;
+  else if (admins.includes('Nadie')) rec = 3;
+  // Tiempo (20pts): horas
+  let tpo = 0;
+  if (horas.includes('Más de 5')) tpo = 20;
+  else if (horas.includes('3 a 5')) tpo = 14;
+  else if (horas.includes('1 a 3')) tpo = 8;
+  else if (horas.includes('Menos de 1')) tpo = 2;
+  // Información (15pts): promedio de prerreqs listos
+  let infoScore = 0;
+  const prereqRows = document.querySelectorAll('#prereq-tbody tr');
+  let infoTotal = 0, infoOk = 0;
+  prereqRows.forEach(row => {
+    const ok = row.querySelector('input[value="ok"]:checked');
+    const warn = row.querySelector('input[value="warn"]:checked');
+    const block = row.querySelector('input[value="block"]:checked');
+    if (ok || warn || block) {
+      infoTotal++;
+      if (ok) infoOk += 1;
+      else if (warn) infoOk += 0.5;
+    }
+  });
+  if (infoTotal > 0) infoScore = Math.round((infoOk / infoTotal) * 15);
+  else infoScore = 8; // default if not filled
+  // Gestión del cambio (15pts)
+  let cambioScore = 0;
+  if (cambio.includes('Alta')) cambioScore = 15;
+  else if (cambio.includes('Media')) cambioScore = 10;
+  else if (cambio.includes('Baja')) cambioScore = 4;
+  const totalScore = gob + rec + tpo + infoScore + cambioScore;
+  const prepLevel = totalScore >= 85 ? 'Alta' : totalScore >= 60 ? 'Media' : 'Baja';
+
+  // ── DIM 3: Urgencia ──
+  const urgTipo = [...document.querySelectorAll('#chk_urgencia_tipo .check-item.selected')]
+    .map(e => e.querySelector('.check-label')?.textContent?.trim()).filter(Boolean);
+  const urgFechaRaw = document.getElementById('f_urgencia_fecha')?.value || '';
+  const urgFlex = getRadio('radio_urgencia_flex');
+
+  // Auto-calc urgencia from date
+  let urgNivel = 'Sin urgencia';
+  let urgenciaDisplay = 'Sin hitos críticos próximos';
+  let diasRestantes = null;
+  if (urgFechaRaw && !urgTipo.some(t => t.includes('Ninguna'))) {
+    const fechaHito = new Date(urgFechaRaw);
+    const hoy = new Date();
+    diasRestantes = Math.ceil((fechaHito - hoy) / (1000 * 60 * 60 * 24));
+    if (diasRestantes <= 30) urgNivel = 'Urgencia crítica';
+    else if (diasRestantes <= 60) urgNivel = 'Urgencia media';
+    else urgNivel = 'Sin urgencia';
+    const fechaFmt = fechaHito.toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'});
+    urgenciaDisplay = `${urgNivel} — ${fechaFmt} (${diasRestantes} días)`;
+  } else if (urgTipo.length && !urgTipo.every(t => t.includes('Ninguna'))) {
+    urgNivel = 'Urgencia media';
+    urgenciaDisplay = `Urgencia media — ${urgTipo.filter(t=>!t.includes('Ninguna')).join(', ')}`;
+  }
+
+  // ── Flags ──
+  const flags = {
+    dxcHasDesc: !!(dxcDesc && !dxcDesc.includes('No existen')),
+    dxcDescPartial: !!(dxcDesc && (dxcDesc.includes('algunos') || dxcDesc.includes('proceso'))),
+    dxcConstrAI: false,
+    eyeObjReady: !!(eyeObj && (eyeObj.includes('listos') || eyeObj.includes('parcialmente'))),
+    eyeHasMetod: !!(eyeMetod && !eyeMetod.includes('No contamos')),
+    cyaPlanReady: !!(cyaContenido && cyaContenido.includes('mayoría')),
+    eyecUrgent: !!(eyecUrgenciaPre && eyecUrgenciaPre.includes('menos de un mes')) || urgNivel === 'Urgencia crítica',
+  };
+
+  const sequence = consultantSequence(active, semas, flags);
+  const first = sequence[0];
+  const routeProfile = ROUTE_PROFILES[first] || {};
+  const objNarrative = objSelected.length ? objSelected.join(' · ') : 'No especificado';
+
+  const riesgo = getRadio('radio_cambio');
+  const riesgoNivel = riesgo.includes('Baja') ? 'Alto' : riesgo.includes('Media') ? 'Medio' : 'Bajo';
+
+  // ── Prerrequisitos desde tabla ──
+  const blockedItems = [];
+  const warnItems = [];
+  prereqRows.forEach(row => {
+    const mod = row.querySelector('.prereq-mod')?.textContent?.trim() || '';
+    const label = row.cells[0]?.textContent?.replace(mod,'').trim() || '';
+    if (row.querySelector('input[value="block"]:checked')) blockedItems.push({mod, label});
+    else if (row.querySelector('input[value="warn"]:checked')) warnItems.push({mod, label});
+  });
+  const prereqCriticos = document.getElementById('f_prereq_criticos')?.value || '';
+  const extraCrits = prereqCriticos ? prereqCriticos.split('·').map(s => s.trim()).filter(Boolean) : [];
+  const allCrits = [...blockedItems.map(b => `${b.mod} · ${b.label}`), ...extraCrits];
+
+  // ── Rationale — based on route profiles ──
+  let rationale = routeProfile.perfil || 'La secuencia prioriza los módulos con mayor preparación para generar resultados rápidos.';
+
+  // ── Alerts ──
+  const alerts = [];
+  if (active.includes('dxc') && dxcDesc) {
+    if (dxcDesc.includes('No existen'))
+      alerts.push({t:'red', msg:`<strong>Bloqueo en Competencias:</strong> No hay descripciones de puesto. Es el requisito base. Trabajaremos juntos para construirlos en el Mes 1 con apoyo de LIA.`});
+    else if (flags.dxcDescPartial)
+      alerts.push({t:'yellow', msg:`<strong>Competencias — acción en Mes 1:</strong> Las descripciones de puesto están incompletas. Hay que completarlas antes de generar matrices.`});
+  }
+  if (active.includes('eye') && !flags.eyeObjReady)
+    alerts.push({t:'yellow', msg:`<strong>Estrategia y Ejecución:</strong> Los objetivos del ciclo aún no están definidos. Incluiremos una sesión de alineación con Dirección como primer paso.`});
+  active.filter(m=>semas[m]==='red').forEach(m =>
+    alerts.push({t:'yellow', msg:`<strong>${MOD_NAMES[m]}:</strong> Requiere preparación previa. El plan contempla tiempo adicional de construcción antes del lanzamiento formal.`}));
+  if (urgNivel === 'Urgencia crítica')
+    alerts.push({t:'red', msg:`<strong>Fecha crítica en ${diasRestantes} días:</strong> ${urgTipo.filter(t=>!t.includes('Ninguna')).join(', ')}. El plan de activación se ajusta para priorizar este hito.`});
+
+  // ── Month plan ──
+  const plan = buildConsultantPlan(active, semas, flags, sequence);
+  const months = [...new Set(Object.keys(plan).map(Number))].filter(m=>m>=0&&m<=11).sort((a,b)=>a-b);
+  const tagStyle = {
+    config:  {bg:'#EDE8FF',color:'#5C1FCC',label:'Configuración'},
+    comun:   {bg:'#E6F7F8',color:'#046B72',label:'Comunicación'},
+    accion:  {bg:'#E8F5E9',color:'#145522',label:'Acción'},
+    seguim:  {bg:'#FFFDE7',color:'#7A4500',label:'Seguimiento'},
+    reporte: {bg:'#FFF3E0',color:'#8B4000',label:'Reporte'},
+    prereq:  {bg:'#FFEBEE',color:'#990000',label:'Prerrequisito'},
+    onb:     {bg:'#F3EEFF',color:'#5C1FCC',label:'🎓 Onboarding'},
+  };
+  const modBadge = m => m==='plat'
+    ? `<span style="background:#6B3FCC;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px">PLAT</span>`
+    : `<span style="background:${MOD_COLORS[m]};color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px">${m.toUpperCase()}</span>`;
+
+  const planHTML = months.map(mi => {
+    const label = monthLabel(kickoffDate, mi);
+    const items = plan[mi];
+    const rows = items.map(({mod,text,who,tag}) => {
+      const ts = tagStyle[tag]||tagStyle.config;
+      // Mark onboarding-related activities
+      const isOnb = tag === 'onb' || text.toLowerCase().includes('onboarding') || text.toLowerCase().includes('capacitación a líderes') || text.toLowerCase().includes('capacitación en metodología');
+      const rowTag = isOnb ? tagStyle.onb : ts;
+      return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #F5F5F7">
+        <div style="flex-shrink:0;min-width:44px">${modBadge(mod)}</div>
+        <div style="flex:1;font-size:12.5px;color:var(--text-2);line-height:1.5">${text}</div>
+        <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+          <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${rowTag.bg};color:${rowTag.color};white-space:nowrap">${rowTag.label}</span>
+          <span style="font-size:10px;color:var(--text-3)">${who}</span>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div style="margin-bottom:14px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;break-inside:avoid">
+      <div style="background:var(--v-dark);color:#fff;padding:9px 16px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:13px;font-weight:700">${label}</span>
+        <span style="font-size:11px;opacity:.6">${items.length} actividad${items.length!==1?'es':''}</span>
+      </div>
+      <div style="padding:4px 16px 8px">${rows}</div>
+    </div>`;
+  }).join('');
+
+  // ── Onboarding capacitación plan ──
+  let capPlanHTML = '';
+  if (tier) {
+    const wks = TIER_WEEKS[tier];
+    const tierLabel = TIER_LABELS[tier];
+    // Build module order
+    const routeKey = getRecommendedRouteKey(active);
+    const routeOrder = getModuleOrder(routeKey, active);
+    let phases = [], week = 1;
+    const platWks = wks.plat;
+    phases.push({key:'plat', start:week, end:week+platWks, info:TRAINING_PLAN.plat});
+    week += platWks;
+    routeOrder.forEach(m => {
+      const mWks = wks[m] || 2;
+      const extra = semas[m]==='red' ? Math.ceil(mWks*0.5) : 0;
+      phases.push({key:m, start:week, end:week+mWks+extra, extra, info:TRAINING_PLAN[m]});
+      week += mWks+extra;
+    });
+    const totalWks = phases[phases.length-1]?.end - 1 || 0;
+    const totalSes = phases.reduce((s,p)=>s+(p.info?.sesiones||0),0);
+    capPlanHTML = `
+    <div class="rec-section">
+      <div class="rec-title">Plan de capacitación del equipo administrador</div>
+      <p style="font-size:12.5px;color:var(--text-2);margin-bottom:12px">Basado en el ritmo acordado: <strong>${tierLabel}</strong>${diasHorarios?' · '+diasHorarios:''}. Cada sesión dura 1 hora.</p>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:var(--v-dark)">
+            <th style="text-align:left;padding:9px 12px;color:#fff;font-size:11px;font-weight:700;border:1px solid #3D1080">Módulo</th>
+            <th style="text-align:center;padding:9px 12px;color:#fff;font-size:11px;font-weight:700;border:1px solid #3D1080">Sesiones</th>
+            <th style="text-align:center;padding:9px 12px;color:#fff;font-size:11px;font-weight:700;border:1px solid #3D1080">Semanas</th>
+            <th style="text-align:left;padding:9px 12px;color:#fff;font-size:11px;font-weight:700;border:1px solid #3D1080">Temas</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${phases.map((p,i) => {
+            const color = p.key==='plat' ? '#6B3FCC' : MOD_COLORS[p.key];
+            const durWks = p.end - p.start;
+            const temas = p.info?.temas?.map(t=>`<div style="font-size:11px;color:var(--text-3);margin-bottom:2px">· ${t}</div>`).join('') || '';
+            const extraNote = p.extra ? ` <span style="font-size:10px;color:var(--yellow);">(+${p.extra} prep)</span>` : '';
+            return `<tr style="background:${i%2===0?'#fff':'var(--grey)'}">
+              <td style="padding:10px 12px;border:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="width:32px;height:32px;border-radius:7px;background:${color};color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${p.key==='plat'?'GEN':p.key.toUpperCase()}</span>
+                  <span style="font-size:12.5px;font-weight:600;color:var(--text)">${p.info?.nombre||'—'}</span>
+                </div>
+              </td>
+              <td style="text-align:center;padding:10px 12px;font-size:13px;font-weight:700;color:var(--text);border:1px solid var(--border)">${p.info?.sesiones||2}</td>
+              <td style="text-align:center;padding:10px 12px;font-size:13px;font-weight:700;color:var(--text);border:1px solid var(--border)">${durWks}${extraNote}</td>
+              <td style="padding:10px 12px;border:1px solid var(--border)">${temas}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;padding:10px 14px;background:var(--v-light);border-radius:8px;font-size:12.5px;margin-top:10px">
+        <span>⏱ <strong>Total: ${totalWks} semanas</strong></span>
+        <span>📋 <strong>${totalSes} sesiones de 1 hora</strong></span>
+        <span>🎯 <strong>${tierLabel}</strong></span>
+      </div>
+    </div>`;
+  }
+
+  // ── Prereq acuerdos para primeros 90 días ──
+  const prereqAcuerdosHTML = (blockedItems.length || warnItems.length) ? `
+    <div class="rec-section">
+      <div class="rec-title">Acuerdos sobre elementos pendientes</div>
+      <p style="font-size:12.5px;color:var(--text-2);margin-bottom:12px">Para los elementos que necesitan atención antes de arrancar, definan juntos cómo y cuándo estarán listos:</p>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:var(--v-dark)">
+            <th style="text-align:left;padding:8px 12px;color:#fff;font-size:11px;border:1px solid #3D1080">Elemento</th>
+            <th style="text-align:center;padding:8px 12px;color:#fff;font-size:11px;border:1px solid #3D1080">Estado</th>
+            <th style="text-align:left;padding:8px 12px;color:#fff;font-size:11px;border:1px solid #3D1080">¿Cómo se resolverá?</th>
+            <th style="text-align:left;padding:8px 12px;color:#fff;font-size:11px;border:1px solid #3D1080">¿Cuándo estará listo?</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${[...blockedItems, ...warnItems].map((item, i) => {
+            const isBlocked = i < blockedItems.length;
+            const icon = isBlocked ? '🔴' : '🟡';
+            return `<tr style="background:${i%2===0?'#fff':'var(--grey)'}">
+              <td style="padding:9px 12px;border:1px solid var(--border)">
+                <span style="font-size:9px;font-weight:800;padding:1px 6px;border-radius:4px;color:#fff;background:${MOD_BG[item.mod?.toLowerCase()]||'#888'};margin-right:6px">${item.mod}</span>
+                ${item.label}
+              </td>
+              <td style="text-align:center;padding:9px 12px;font-size:16px;border:1px solid var(--border)">${icon}</td>
+              <td style="padding:9px 12px;border:1px solid var(--border);color:var(--text-3);font-style:italic;font-size:12px">Definir con el cliente…</td>
+              <td style="padding:9px 12px;border:1px solid var(--border);color:var(--text-3);font-style:italic;font-size:12px">Definir con el cliente…</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>` : '';
+
+  // ── Madurez por módulo ──
+  const readHTML = active.map(m=>{
+    const ico = {green:'🟢',yellow:'🟡',red:'🔴','':'⚪'}[semas[m]]||'⚪';
+    const lbl = {green:'Listo para iniciar',yellow:'En preparación',red:'Requiere construcción','':'Sin evaluar'}[semas[m]]||'Sin evaluar';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F5F5F7">
+      <span style="width:28px;height:28px;border-radius:6px;background:${MOD_COLORS[m]};color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${m.toUpperCase()}</span>
+      <span style="font-size:13px;font-weight:600;flex:1;color:var(--text)">${MOD_NAMES[m]}</span>
+      <span style="font-size:12.5px">${ico} ${lbl}</span>
+    </div>`;
+  }).join('');
+
+  // ── Diagnostic card ──
+  const prepColor = prepLevel==='Alta' ? 'var(--green)' : prepLevel==='Baja' ? 'var(--red)' : 'var(--yellow)';
+  const prepBg = prepLevel==='Alta' ? 'var(--green-light)' : prepLevel==='Baja' ? 'var(--red-light)' : 'var(--yellow-light)';
+  const riesgoColor = riesgoNivel==='Bajo' ? 'var(--green)' : riesgoNivel==='Alto' ? 'var(--red)' : 'var(--yellow)';
+  const urgColor = urgNivel==='Sin urgencia' ? 'var(--text-3)' : urgNivel==='Urgencia crítica' ? 'var(--red)' : 'var(--yellow)';
+
+  const diagCard = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="padding:14px;border-radius:var(--radius-sm);background:var(--grey);border:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Objetivo principal</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4">${objNarrative}</div>
+      </div>
+      <div style="padding:14px;border-radius:var(--radius-sm);background:${prepBg};border:1px solid ${prepColor}">
+        <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Nivel de preparación</div>
+        <div style="font-size:20px;font-weight:800;color:${prepColor}">${prepLevel==='Alta'?'🟢':prepLevel==='Baja'?'🔴':'🟡'} ${prepLevel}</div>
+        <div style="font-size:11px;color:${prepColor};margin-top:2px">${totalScore} / 100 pts</div>
+      </div>
+      <div style="padding:14px;border-radius:var(--radius-sm);background:var(--grey);border:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Riesgo de adopción</div>
+        <div style="font-size:16px;font-weight:700;color:${riesgoColor}">${riesgoNivel==='Bajo'?'🟢':riesgoNivel==='Alto'?'🔴':'🟡'} ${riesgoNivel}</div>
+      </div>
+      <div style="padding:14px;border-radius:var(--radius-sm);background:var(--grey);border:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Urgencia</div>
+        <div style="font-size:13px;font-weight:600;color:${urgColor}">${urgenciaDisplay}</div>
+      </div>
+    </div>
+    ${allCrits.length ? `
+    <div style="padding:14px;border-radius:var(--radius-sm);background:var(--red-light);border-left:4px solid var(--red);margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Elementos que necesitamos resolver antes de arrancar</div>
+      ${allCrits.map(c=>`<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;font-size:13px;color:var(--text-2)"><span style="color:var(--red);font-weight:700;flex-shrink:0">✕</span>${c}</div>`).join('')}
+    </div>` : ''}`;
+
+  const html = `
+    ${diagCard}
+    <div class="rec-section">
+      <div class="rec-title">Ruta de implementación recomendada</div>
+      <div style="padding:14px;background:${routeProfile.color ? routeProfile.color+'18' : 'var(--v-light)'};border:1.5px solid ${routeProfile.color || 'var(--v)'};border-radius:var(--radius-sm);margin-bottom:12px">
+        <div style="font-size:13px;font-weight:800;color:${routeProfile.color || 'var(--v-dark)'};margin-bottom:6px">${routeProfile.nombre || 'Ruta recomendada'}</div>
+        <div style="font-size:12.5px;color:var(--text-2);line-height:1.6;margin-bottom:10px">${rationale}</div>
+        ${routeProfile.kpis ? `<div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Métricas de éxito</div>${routeProfile.kpis.map(k=>`<div style="font-size:12px;color:var(--text-2);margin-bottom:3px">→ ${k}</div>`).join('')}` : ''}
+      </div>
+      ${sequence.length>1?`<div style="font-size:12.5px;color:var(--text-2);margin-top:6px">Secuencia de activación: ${sequence.map((m,i)=>`<strong style="color:${MOD_COLORS[m]}">${i+1}. ${MOD_NAMES[m]}</strong>`).join(' <span style="color:var(--text-3)">→</span> ')}</div>`:''}
+    </div>
+    <div class="rec-section">
+      <div class="rec-title">Preparación por módulo</div>
+      <div>${readHTML}</div>
+    </div>
+    ${alerts.length?`
+    <div class="rec-section">
+      <div class="rec-title">Puntos de atención</div>
+      ${alerts.map(a=>`<div class="alert-box ${a.t}"><span class="alert-icon">${a.t==='red'?'🔴':'⚠️'}</span><span class="alert-text">${a.msg}</span></div>`).join('')}
+    </div>`:''}
+    ${prereqAcuerdosHTML}
+    ${capPlanHTML}
+    <div class="rec-section">
+      <div class="rec-title">Plan de implementación · Mes a mes</div>
+      <p style="font-size:12px;color:var(--text-3);margin-bottom:14px">Solo incluye actividades de los módulos contratados. Las fechas son estimadas a partir de la sesión de inicio. 🎓 = actividad vinculada al onboarding del equipo.</p>
+      ${planHTML}
+    </div>
+    ${meta60?`
+    <div class="rec-section">
+      <div class="rec-title">Resultado esperado a 60 días</div>
+      <div class="rec-body"><p>${meta60}</p></div>
+    </div>`:''}
+    ${notas?`
+    <div class="rec-section">
+      <div class="rec-title">Notas de la sesión</div>
+      <div class="rec-body"><p>${notas.replace(/\n/g,'<br/>')}</p></div>
+    </div>`:''}
+    <div style="margin-top:16px;padding:12px 16px;background:var(--v-light);border-radius:var(--radius-sm);font-size:12px;color:var(--v-mid)">
+      <strong>Nota:</strong> Este diagnóstico es una recomendación basada en sus respuestas. Las fechas y actividades se ajustarán en las sesiones de seguimiento según el avance real.
+    </div>`;
+
+  document.getElementById('analysis-body').innerHTML = html;
+  document.getElementById('analysis-section').scrollIntoView({behavior:'smooth', block:'start'});
+  showToast('✅ Diagnóstico generado', '', 3000);
+}
+
+
+// ─── Choices builder ─────────────────────────────────
+function buildStaticChoices() {
+  // ── DIM 1: Objetivo de Negocio ──
+  buildChoices('chk_obj_dev', [
+    'Crear planes de desarrollo individuales (PIDs)',
+    'Profesionalizar el liderazgo',
+    'Definir y gestionar competencias'
+  ], 'check');
+  buildChoices('chk_obj_cap', [
+    'Cumplir normativas (STPS / DC3)',
+    'Crear una universidad corporativa',
+    'Capacitación masiva de colaboradores'
+  ], 'check');
+  buildChoices('chk_obj_des', [
+    'Implementar evaluaciones de desempeño',
+    'Mejorar la cultura de feedback',
+    'Gestionar objetivos / OKRs'
+  ], 'check');
+  buildChoices('chk_obj_cul', [
+    'Incrementar la participación y adopción',
+    'Fortalecer la comunicación interna',
+    'Mejorar la experiencia del colaborador'
+  ], 'check');
+
+  // Obj max-3 watcher
+  document.querySelectorAll('#chk_obj_dev .check-item, #chk_obj_cap .check-item, #chk_obj_des .check-item, #chk_obj_cul .check-item').forEach(el => {
+    el.addEventListener('click', enforceMax3Obj, false);
+  });
+
+  // ── DIM 2 VAR 1: Gobernanza ──
+  buildChoices('radio_sponsor', [
+    'Director / C-Level involucrado activamente',
+    'Gerente involucrado con capacidad de decisión',
+    'Solo el área de RH / DO',
+    'No está definido'
+  ], 'radio');
+  buildChoices('radio_decision', [
+    'La impulsó RH / DO',
+    'La pidió el C-Level',
+    'Necesidad regulatoria (STPS / DC3)',
+    'La propuso un líder de área',
+    'Otro'
+  ], 'radio');
+
+  // ── DIM 2 VAR 2: Recursos ──
+  buildChoices('radio_admins', [
+    '3 o más personas',
+    '2 personas',
+    '1 persona',
+    'Nadie asignado todavía'
+  ], 'radio');
+
+  // ── DIM 2 VAR 3: Tiempo ──
+  buildChoices('radio_horas', [
+    'Más de 5 horas semanales',
+    '3 a 5 horas semanales',
+    '1 a 3 horas semanales',
+    'Menos de 1 hora semanal'
+  ], 'radio');
+
+  // ── DIM 2 VAR 4: DxC ──
+  buildChoices('radio_dxc_desc', [
+    'Sí, para todos los puestos → Completos',
+    'Para algunos puestos clave → Parciales',
+    'Están en proceso de elaboración → Parciales',
+    'No existen actualmente → Bloqueado'
+  ], 'radio');
+  buildChoices('radio_dxc_comp', [
+    'Sí, documentadas y actualizadas',
+    'Sí, pero desactualizadas o incompletas',
+    'Están en proceso de definición',
+    'No existen — hay que construirlas desde cero'
+  ], 'radio');
+  buildChoices('chk_dxc_modelo', [
+    'No contamos con un modelo definido',
+    'Tenemos competencias generales para toda la organización',
+    'Contamos con competencias diferenciadas por áreas o departamentos',
+    'Tenemos competencias definidas por niveles organizacionales (operativo, supervisión, liderazgo…)',
+    'Contamos con un modelo robusto por puesto, niveles y/o familias de puesto'
+  ], 'check');
+  buildChoices('chk_dxc_elementos', [
+    'Competencias organizacionales o valores corporativos',
+    'Competencias por área o departamento',
+    'Competencias por familia de puestos',
+    'Competencias por niveles o seniority',
+    'Competencias específicas por puesto',
+    'Niveles de dominio o escalas de evaluación',
+    'Ninguno de los anteriores'
+  ], 'check');
+  buildChoices('radio_dxc_construccion', [
+    'Un modelo único para toda la organización',
+    'Diferenciado por áreas o departamentos',
+    'Diferenciado por niveles organizacionales',
+    'Diferenciado por familias de puesto',
+    'Diferenciado por cada puesto específico',
+    'Aún no lo tenemos definido y necesitamos acompañamiento'
+  ], 'radio');
+  buildChoices('chk_dxc_resultado90', [
+    'Tener descriptivos completos',
+    'Contar con matrices de competencias',
+    'Aplicar un diagnóstico de competencias',
+    'Lanzar planes de desarrollo (PIDs)',
+    'Obtener un mapa de capacidades de la organización'
+  ], 'check');
+
+  // ── DIM 2 VAR 4: EyE ──
+  buildChoices('chk_eye_objetivo', [
+    'Alinear la estrategia organizacional',
+    'Mejorar el seguimiento al desempeño',
+    'Dar visibilidad al avance de resultados',
+    'Profesionalizar la gestión',
+    'Crear una cultura de accountability'
+  ], 'check');
+  buildChoices('radio_eye_metodologia', [
+    'Sí, utilizamos OKRs de forma estructurada',
+    'Tenemos KPIs pero sin metodología formal',
+    'Hay objetivos pero sin seguimiento sistemático',
+    'No contamos con proceso de gestión de objetivos'
+  ], 'radio');
+  buildChoices('radio_eye_objetivos', [
+    'Sí, están definidos y listos para cargar',
+    'Definidos parcialmente (algunos departamentos)',
+    'En proceso de definición',
+    'No — hay que definirlos desde cero'
+  ], 'radio');
+  buildChoices('radio_eye_frecuencia', [
+    'Semanal',
+    'Quincenal',
+    'Mensual',
+    'No existe un seguimiento formal'
+  ], 'radio');
+  buildChoices('chk_eye_resultado90', [
+    'Lanzar el primer ciclo de objetivos',
+    'Capacitar a líderes en la metodología',
+    'Generar los primeros check-ins',
+    'Obtener reportes ejecutivos',
+    'Consolidar una cultura de seguimiento'
+  ], 'check');
+
+  // ── DIM 2 VAR 4: CyA ──
+  buildChoices('radio_cya_objetivo', [
+    'Cumplimiento normativo (STPS)',
+    'Onboarding e inducción',
+    'Desarrollo de liderazgo',
+    'Capacitación técnica',
+    'Crear una universidad corporativa',
+    'Otro'
+  ], 'radio');
+  buildChoices('radio_cya_gestion', [
+    'No existe un proceso formal',
+    'Se realizan capacitaciones esporádicas',
+    'Tenemos cursos y programas definidos',
+    'Contamos con un LMS o universidad corporativa'
+  ], 'radio');
+  buildChoices('radio_cya_contenido', [
+    'Sí, la mayoría está lista',
+    'Tenemos algunos contenidos',
+    'Apenas estamos definiendo los temas',
+    'No contamos con contenidos',
+    'Usaremos solo el catálogo Lapzo'
+  ], 'radio');
+  buildChoices('radio_cya_plan', [
+    'Sí, completamente definido',
+    'Parcialmente definido',
+    'Está en construcción',
+    'No existe'
+  ], 'radio');
+  buildChoices('chk_cya_resultado90', [
+    'Lanzar una ruta de aprendizaje',
+    'Capacitar a toda la empresa',
+    'Tener reportes de avance',
+    'Lanzar la universidad corporativa',
+    'Cumplir una auditoría o requisito normativo'
+  ], 'check');
+
+  // ── DIM 2 VAR 4: EyC ──
+  buildChoices('radio_eyc_objetivo', [
+    'Medir desempeño',
+    'Obtener feedback estructurado',
+    'Identificar talento clave',
+    'Medir clima laboral',
+    'Tomar decisiones de desarrollo'
+  ], 'radio');
+  buildChoices('radio_eyc_tipo_actual', [
+    'Ninguna',
+    'Evaluaciones informales',
+    'Evaluaciones anuales',
+    'Procesos estructurados y recurrentes'
+  ], 'radio');
+  buildChoices('radio_eyc_urgencia', [
+    'Sí, en menos de un mes',
+    'Sí, en los próximos tres meses',
+    'Estamos evaluándolo',
+    'No existe una fecha definida'
+  ], 'radio');
+  buildChoices('radio_eyc_participantes', [
+    'Sí, completamente definidos',
+    'Parcialmente definidos',
+    'Apenas se están definiendo',
+    'No están definidos'
+  ], 'radio');
+  buildChoices('chk_eyc_resultado90', [
+    'Lanzar la primera evaluación',
+    'Obtener reportes y resultados',
+    'Realizar sesiones de feedback',
+    'Ejecutar una encuesta de clima',
+    'Identificar talento y oportunidades de desarrollo'
+  ], 'check');
+
+  // ── DIM 2 VAR 5: Gestión del cambio ──
+  buildChoices('radio_cambio', [
+    'Alta — adoptamos herramientas nuevas con rapidez',
+    'Media — lo hacemos con acompañamiento y comunicación',
+    'Baja — hay resistencia al cambio, requiere gestión activa'
+  ], 'radio');
+  buildChoices('radio_comunicacion_iniciativas', [
+    'El equipo directivo lo comunica de arriba hacia abajo',
+    'RH / DO lidera la comunicación con correos y sesiones informativas',
+    'Cada área lo comunica de forma independiente',
+    'No existe un proceso formal de comunicación interna'
+  ], 'radio');
+  buildChoices('radio_reto_colaboradores', [
+    'Falta de tiempo y disponibilidad',
+    'Resistencia o desconfianza ante nuevas herramientas',
+    'Desconexión entre liderazgo y equipos operativos',
+    'Falta de claridad sobre el beneficio personal',
+    'Rotación alta de personal'
+  ], 'radio');
+
+
+  // ── DIM 3: Urgencia ──
+  buildChoices('chk_urgencia_tipo', [
+    'Auditoría STPS / DC3',
+    'Evaluación de desempeño programada',
+    'Inicio de nuevo trimestre / ciclo de objetivos',
+    'Planeación anual',
+    'Lanzamiento de universidad corporativa',
+    'Onboarding masivo de nuevos ingresos',
+    'Ninguna — sin presiones de tiempo específicas'
+  ], 'check');
+  buildChoices('chk_urgencia_modulo', [
+    'CyA — Capacitación y Aprendizaje',
+    'DxC — Desarrollo por Competencias',
+    'EyC — Evaluaciones y Clima',
+    'EyE — Estrategia y Ejecución'
+  ], 'check');
+  buildChoices('radio_urgencia_flex', [
+    'No es flexible — fecha regulatoria o de negocio inamovible',
+    'Puede moverse 2 a 4 semanas si es necesario',
+    'Es orientativa, no hay consecuencias si se retrasa'
+  ], 'radio');
+}
+
+// ── Obj max-3 enforcer ──
+function enforceMax3Obj() {
+  setTimeout(() => {
+    const all = document.querySelectorAll('#chk_obj_dev .check-item, #chk_obj_cap .check-item, #chk_obj_des .check-item, #chk_obj_cul .check-item');
+    const selected = [...all].filter(e => e.classList.contains('selected'));
+    const warn = document.getElementById('obj-max-warn');
+    const atMax = selected.length >= 3;
+    all.forEach(e => {
+      if (atMax && !e.classList.contains('selected')) {
+        e.classList.add('disabled');
+      } else {
+        e.classList.remove('disabled');
+      }
+    });
+    if (warn) warn.style.display = atMax ? 'block' : 'none';
+  }, 0);
+}
+
+// ── Prereq table builder (auto-fills from answers, AS can override) ──
+const PREREQ_ITEMS = {
+  dxc: ['Estructura organizacional cargada','Descriptivos de puesto','Diccionario de competencias'],
+  eye: ['Objetivos del ciclo definidos','Metodología de objetivos (OKR/KPI)','Calendario de negocio alineado'],
+  cya: ['Plan de capacitación / DNC','Contenido propio disponible'],
+  eyc: ['Cuestionario de evaluación','Proceso de evaluación definido'],
+};
+const MOD_BG = {cya:'#8B55FE',dxc:'#5C3D8F',eyc:'#04949D',eye:'#1E7E34'};
+
+function inferPrereqStatus(mod, item) {
+  // Returns 'ok', 'warn', or 'block' based on client answers
+  if (mod === 'dxc') {
+    if (item === 'Descriptivos de puesto') {
+      const v = getRadio('radio_dxc_desc');
+      if (!v) return '';
+      if (v.includes('todos')) return 'ok';
+      if (v.includes('algunos') || v.includes('proceso')) return 'warn';
+      if (v.includes('No existen')) return 'block';
+    }
+    if (item === 'Diccionario de competencias') {
+      const v = getRadio('radio_dxc_comp');
+      if (!v) return '';
+      if (v.includes('documentadas y actualizadas')) return 'ok';
+      if (v.includes('desactualizadas') || v.includes('proceso de definición')) return 'warn';
+      if (v.includes('desde cero')) return 'block';
+    }
+    if (item === 'Estructura organizacional cargada') return ''; // can't infer
+  }
+  if (mod === 'eye') {
+    if (item === 'Objetivos del ciclo definidos') {
+      const v = getRadio('radio_eye_objetivos');
+      if (!v) return '';
+      if (v.includes('listos')) return 'ok';
+      if (v.includes('parcialmente') || v.includes('proceso')) return 'warn';
+      if (v.includes('desde cero')) return 'block';
+    }
+    if (item === 'Metodología de objetivos (OKR/KPI)') {
+      const v = getRadio('radio_eye_metodologia');
+      if (!v) return '';
+      if (v.includes('OKRs de forma estructurada')) return 'ok';
+      if (v.includes('KPIs pero sin') || v.includes('sin seguimiento')) return 'warn';
+      if (v.includes('No contamos')) return 'block';
+    }
+    if (item === 'Calendario de negocio alineado') return ''; // can't infer
+  }
+  if (mod === 'cya') {
+    if (item === 'Plan de capacitación / DNC') {
+      const v = getRadio('radio_cya_plan');
+      if (!v) return '';
+      if (v.includes('completamente definido')) return 'ok';
+      if (v.includes('Parcialmente') || v.includes('construcción')) return 'warn';
+      if (v.includes('No existe')) return 'block';
+    }
+    if (item === 'Contenido propio disponible') {
+      const v = getRadio('radio_cya_contenido');
+      if (!v) return '';
+      if (v.includes('mayoría')) return 'ok';
+      if (v.includes('algunos') || v.includes('definiendo')) return 'warn';
+      if (v.includes('No contamos') || v.includes('solo el catálogo')) return 'block';
+    }
+  }
+  if (mod === 'eyc') {
+    if (item === 'Cuestionario de evaluación') {
+      const v = getRadio('radio_eyc_participantes');
+      if (!v) return '';
+      if (v.includes('completamente')) return 'ok';
+      if (v.includes('Parcialmente') || v.includes('definiendo')) return 'warn';
+      if (v.includes('No están')) return 'block';
+    }
+    if (item === 'Proceso de evaluación definido') {
+      const v = getRadio('radio_eyc_tipo_actual');
+      if (!v) return '';
+      if (v.includes('estructurados')) return 'ok';
+      if (v.includes('anuales') || v.includes('informales')) return 'warn';
+      if (v.includes('Ninguna')) return 'block';
+    }
+  }
+  return '';
+}
+
+function buildPrereqTable() {
+  const tbody = document.getElementById('prereq-tbody');
+  if (!tbody) return;
+  const active = ['cya','dxc','eyc','eye'].filter(m => activeModules[m]);
+  if (!active.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);font-style:italic;padding:20px">Seleccionen al menos un módulo para ver los elementos a revisar.</td></tr>';
+    return;
+  }
+  let rows = '';
+  let idx = 0;
+  active.forEach(m => {
+    (PREREQ_ITEMS[m] || []).forEach(item => {
+      const i = idx++;
+      const inferred = inferPrereqStatus(m, item);
+      const mkRadio = (val, cls, icon) => {
+        const checked = inferred === val ? 'checked' : '';
+        return `<input type="radio" name="pr_${i}" id="pr_${i}_${val}" value="${val}" ${checked}><label for="pr_${i}_${val}" class="${cls}" title="${cls==='ok'?'Listo':cls==='warn'?'Parcial':'Bloqueado'}">${icon}</label>`;
+      };
+      rows += `<tr>
+        <td><span class="prereq-mod" style="background:${MOD_BG[m]}">${m.toUpperCase()}</span>${item}</td>
+        <td><div class="prereq-radio">${mkRadio('ok','ok','✓')}</div></td>
+        <td><div class="prereq-radio">${mkRadio('warn','warn','⚠')}</div></td>
+        <td><div class="prereq-radio">${mkRadio('block','block','✕')}</div></td>
+      </tr>`;
+    });
+  });
+  tbody.innerHTML = rows;
+}
+
+function buildChoices(id, opts, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = opts.map(o => type === 'check'
+    ? `<div class="check-item" onclick="toggleCheck(this)"><span class="check-box"></span><span class="check-label">${o}</span></div>`
+    : `<div class="radio-item" onclick="selectRadio(this)"><span class="radio-dot"></span><span class="check-label">${o}</span></div>`
+  ).join('');
+}
+
+// ─── Interactions ─────────────────────────────────────
+function toggleCheck(el) { el.classList.toggle('selected'); }
+function selectRadio(el) {
+  el.closest('.radio-grid').querySelectorAll('.radio-item').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+  // Rebuild prereq table when answers change that affect it
+  const prereqFields = ['radio_dxc_desc','radio_dxc_comp','radio_eye_objetivos','radio_eye_metodologia','radio_cya_contenido','radio_cya_plan','radio_eyc_urgencia','radio_eyc_participantes','radio_eyc_tipo_actual'];
+  const parentId = el.closest('[id]')?.id || '';
+  if (prereqFields.includes(parentId)) buildPrereqTable();
+}
+function selectSema(id, val) {
+  ['green','yellow','red'].forEach(c => {
+    const b = document.getElementById(id+'_'+c);
+    if (b) b.className = 'sema-btn' + (c===val?' sel-'+c:'');
+  });
+}
+function selectSemaRow(id, val) {
+  ['green','yellow','red'].forEach(c => {
+    const e = document.getElementById('sr_'+id+'_'+c);
+    if (e) e.style.opacity = c===val?'1':'0.25';
+  });
+}
+function getRadio(id) {
+  const el = document.getElementById(id);
+  if (!el) return '';
+  const s = el.querySelector('.radio-item.selected .check-label');
+  return s ? s.textContent.trim() : '';
+}
+
+// ─── Google Sheets endpoint ───────────────────────────
+// Pega aquí la URL del Apps Script desplegado.
+// Instrucciones: abre diagnostico-apps-script.gs en tu carpeta.
+const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbykcVgA6y3g8Tv-Yw_OkXFcPNTZHmKdHBi_oQ-Tez9RFNs8B4Xbpt0qhoS3oYYdQyTU/exec';
+
+// ─── Collect all form data ────────────────────────────
+function collectData() {
+  const v = id => { const e = document.getElementById(id); return e ? (e.value||'') : ''; };
+  const chk = id => { const e = document.getElementById(id); if(!e) return ''; return [...e.querySelectorAll('.check-item.selected .check-label')].map(x=>x.textContent.trim()).join(', '); };
+  const rad = id => getRadio(id);
+  const sema = id => { for(const c of['green','yellow','red']){const b=document.getElementById(id+'_'+c);if(b&&b.className.includes('sel-'+c))return c==='green'?'🟢 Listo':c==='yellow'?'🟡 En preparación':'🔴 Requiere construcción';} return ''; };
+  const semaRow = id => { for(const c of['green','yellow','red']){const e=document.getElementById('sr_'+id+'_'+c);if(e&&parseFloat(e.style.opacity)===1)return c==='green'?'🟢 Listo':c==='yellow'?'🟡 En preparación':'🔴 Requiere construcción';} return ''; };
+
+  return {
+    timestamp: new Date().toISOString(),
+    cliente: v('f_cliente'), fecha_ko: v('f_fecha'),
+    ejecutivo_cuenta: v('f_as'), contacto: v('f_contacto'),
+    modulos: ['cya','dxc','eyc','eye'].filter(m=>activeModules[m]).map(m=>MOD_NAMES[m]).join(', '),
+    // CyA
+    cya_proceso: v('f_cya_proceso'), cya_contenido: v('f_cya_contenido'),
+    cya_asignacion: chk('chk_cya_asignacion'), cya_admin: v('f_cya_admin'),
+    cya_plan: rad('radio_cya_plan'), cya_creacion: v('f_cya_creacion'),
+    cya_resultado: v('f_cya_resultado'), cya_fecha_lanzamiento: v('f_cya_fecha_lanzamiento'),
+    cya_semaforo: sema('sema_cya'),
+    // DxC
+    dxc_comp: rad('radio_dxc_comp'), dxc_desc: rad('radio_dxc_desc'),
+    dxc_herramienta: v('f_dxc_herramienta'), dxc_lider: v('f_dxc_lider'),
+    dxc_construccion: rad('radio_dxc_construccion'), dxc_alcance: v('f_dxc_alcance'),
+    dxc_resultado: v('f_dxc_resultado'), dxc_visibilidad: v('f_dxc_visibilidad'),
+    dxc_semaforo: sema('sema_dxc'),
+    // EyC
+    eyc_eval: rad('radio_eyc_eval'), eyc_herramienta: v('f_eyc_herramienta'),
+    eyc_tipo: chk('chk_eyc_tipo'), eyc_cuestionario: v('f_eyc_cuestionario'),
+    eyc_admin: v('f_eyc_admin'), eyc_cuando: rad('radio_eyc_cuando'),
+    eyc_fecha_esp: v('f_eyc_fecha_esp'), eyc_resultados_uso: v('f_eyc_resultados_uso'),
+    eyc_resultado: v('f_eyc_resultado'), eyc_semaforo: sema('sema_eyc'),
+    // EyE
+    eye_metodologia: rad('radio_eye_metodologia'), eye_herramienta: v('f_eye_herramienta'),
+    eye_proceso: v('f_eye_proceso'), eye_objetivos: rad('radio_eye_objetivos'),
+    eye_exp_lider: v('f_eye_exp_lider'), eye_periodicidad: v('f_eye_periodicidad'),
+    eye_alcance: v('f_eye_alcance'), eye_resultado: v('f_eye_resultado'),
+    eye_semaforo: sema('sema_eye'),
+    // Éxito
+    estrategia_impl: rad('radio_estrategia_impl'),
+    prioridad_modulo: v('f_prioridad_modulo'),
+    resultado_60d: v('f_resultado_60d'),
+    comunicacion_interna: v('f_comunicacion_interna'),
+    exito_sponsor: v('f_exito_sponsor'),
+    // Resumen EC
+    acuerdo_exito: v('f_acuerdo_exito'),
+    tareas_cliente: v('f_tareas_cliente'),
+    siguiente_sesion: v('f_siguiente_sesion'),
+    ejecutivo_cuenta_final: v('f_as_final'),
+    notas_ec: v('f_notas_as'),
+    sema_cya_final: semaRow('sema_cya'),
+    sema_dxc_final: semaRow('sema_dxc'),
+    sema_eyc_final: semaRow('sema_eyc'),
+    sema_eye_final: semaRow('sema_eye'),
+  };
+}
+
+// ─── Send to Google Sheets ────────────────────────────
+async function sendToSheets() {
+  if (SHEETS_ENDPOINT === 'TU_URL_APPS_SCRIPT_AQUI') {
+    showToast('⚙️ Configura el endpoint primero — ver diagnostico-apps-script.gs', 'error', 5000);
+    return;
+  }
+  showToast('📤 Guardando diagnóstico…', '', 2500);
+  try {
+    await fetch(SHEETS_ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify(collectData()),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    showToast('✅ Diagnóstico guardado en Google Sheets', 'success', 4000);
+  } catch(e) {
+    showToast('❌ Error al guardar. Verifica la URL del endpoint.', 'error', 4000);
+  }
+}
+
+// ─── Toast ────────────────────────────────────────────
+function showToast(msg, type, ms) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type?' '+type:'');
+  setTimeout(() => t.className='toast', ms||3000);
+}
+</script>
+</body>
+</html>
